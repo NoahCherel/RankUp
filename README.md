@@ -70,7 +70,7 @@ src/
 ## 📋 User Stories (MVP)
 
 - [x] US #1 - Infrastructure & Authentification
-- [ ] US #2 - Profil Utilisateur Unifié
+- [x] US #2 - Profil Utilisateur Unifié
 - [ ] US #3 - Marketplace & Filtres
 - [ ] US #4 - Intégration Stripe
 - [ ] US #5 - Workflow Réservation
