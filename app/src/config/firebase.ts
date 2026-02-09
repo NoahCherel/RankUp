@@ -1,7 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+// Use require for conditional imports to avoid Metro bundling issues on Web
+import { initializeAuth, getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { Platform } from 'react-native';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -14,7 +16,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// Initialize Auth with persistence for React Native
+// Use AsyncStorage for mobile, default for web
+let auth: import('firebase/auth').Auth;
+
+if (Platform.OS === 'web') {
+  auth = getAuth(app);
+} else {
+  // Dynamically require React Native specific modules
+  const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+  const { getReactNativePersistence } = require('firebase/auth');
+
+  try {
+    auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch (e) {
+    auth = getAuth(app);
+  }
+}
+
+export { auth };
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
