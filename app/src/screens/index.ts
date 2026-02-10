@@ -4,3 +4,5 @@ export { default as SplashScreen } from './SplashScreen';
 export { default as OnboardingScreen } from './OnboardingScreen';
 export { default as EditProfileScreen } from './EditProfileScreen';
 export { default as MyProfileScreen } from './MyProfileScreen';
+export { default as MarketplaceScreen } from './MarketplaceScreen';
+export { default as MentorDetailScreen } from './MentorDetailScreen';
