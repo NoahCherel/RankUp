@@ -10,9 +10,13 @@ import {
     OnboardingScreen,
     EditProfileScreen,
     MyProfileScreen,
+    MarketplaceScreen,
+    MentorDetailScreen,
 } from '../screens';
+import BottomTabBar, { TabName } from '../components/ui/BottomTabBar';
 import { Colors } from '../theme';
 import { ActivityIndicator, View, Text } from 'react-native';
+import { UserProfile } from '../types';
 
 export type RootStackParamList = {
     Auth: undefined;
@@ -21,29 +25,93 @@ export type RootStackParamList = {
     Home: undefined;
     MyProfile: undefined;
     EditProfile: undefined;
+    Marketplace: undefined;
+    MentorDetail: { mentor: UserProfile };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Main Tab Navigator (will be replaced with proper tabs in US#3)
+// Main app with bottom tabs
 function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
-    const [activeScreen, setActiveScreen] = useState<'home' | 'profile' | 'editProfile'>('home');
+    const [activeTab, setActiveTab] = useState<TabName>('home');
+    const [activeScreen, setActiveScreen] = useState<string>('home');
+    const [selectedMentor, setSelectedMentor] = useState<UserProfile | null>(null);
 
-    if (activeScreen === 'editProfile') {
-        return <EditProfileScreen onBack={() => setActiveScreen('profile')} />;
-    }
+    const handleTabPress = (tab: TabName) => {
+        setActiveTab(tab);
+        setActiveScreen(tab);
+        setSelectedMentor(null);
+    };
 
-    if (activeScreen === 'profile') {
-        return (
-            <MyProfileScreen
-                onEditProfile={() => setActiveScreen('editProfile')}
-                onBack={() => setActiveScreen('home')}
-                onProfileNotFound={onNeedOnboarding}
-            />
-        );
-    }
+    const handleMentorPress = (mentor: UserProfile) => {
+        setSelectedMentor(mentor);
+        setActiveScreen('mentorDetail');
+    };
 
-    return <HomeScreen onNavigateProfile={() => setActiveScreen('profile')} />;
+    const renderScreen = () => {
+        switch (activeScreen) {
+            case 'home':
+                return (
+                    <HomeScreen
+                        onNavigateProfile={() => {
+                            setActiveTab('profile');
+                            setActiveScreen('profile');
+                        }}
+                    />
+                );
+            case 'marketplace':
+                return (
+                    <MarketplaceScreen
+                        onMentorPress={handleMentorPress}
+                    />
+                );
+            case 'mentorDetail':
+                if (!selectedMentor) return null;
+                return (
+                    <MentorDetailScreen
+                        mentor={selectedMentor}
+                        onBack={() => {
+                            setActiveScreen('marketplace');
+                            setSelectedMentor(null);
+                        }}
+                    />
+                );
+            case 'profile':
+                return (
+                    <MyProfileScreen
+                        onEditProfile={() => setActiveScreen('editProfile')}
+                        onBack={() => {
+                            setActiveTab('home');
+                            setActiveScreen('home');
+                        }}
+                        onProfileNotFound={onNeedOnboarding}
+                    />
+                );
+            case 'editProfile':
+                return (
+                    <EditProfileScreen
+                        onBack={() => {
+                            setActiveScreen('profile');
+                            setActiveTab('profile');
+                        }}
+                    />
+                );
+            default:
+                return <HomeScreen onNavigateProfile={() => setActiveScreen('profile')} />;
+        }
+    };
+
+    // Hide tab bar on sub-screens (mentorDetail, editProfile)
+    const showTabBar = ['home', 'marketplace', 'profile'].includes(activeScreen);
+
+    return (
+        <View style={{ flex: 1 }}>
+            {renderScreen()}
+            {showTabBar && (
+                <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
+            )}
+        </View>
+    );
 }
 
 export default function AppNavigator() {
@@ -61,7 +129,6 @@ export default function AppNavigator() {
             setError(null);
         } catch (err) {
             console.error('[Nav] Error checking onboarding:', err);
-            // If Firestore fails, assume onboarding needed
             setNeedsOnboarding(true);
             setError('Erreur de connexion Firestore');
         }
@@ -99,7 +166,7 @@ export default function AppNavigator() {
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }}>
                 <ActivityIndicator size="large" color={Colors.primary} />
                 <Text style={{ color: Colors.textSecondary, marginTop: 16 }}>
-                    Chargement...
+                    {'Chargement...'}
                 </Text>
             </View>
         );
