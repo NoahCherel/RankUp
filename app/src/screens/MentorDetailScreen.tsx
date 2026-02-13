@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -6,10 +6,14 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
+    Platform,
+    Alert,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { UserProfile } from '../types';
 import { getInitials } from '../utils/formatters';
+import { handlePayment } from '../services/paymentService';
+import PaymentModal from '../components/payment/PaymentModal';
 
 interface MentorDetailScreenProps {
     mentor: UserProfile;
@@ -18,6 +22,38 @@ interface MentorDetailScreenProps {
 
 export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScreenProps) {
     const initials = getInitials(mentor.firstName || '?', mentor.lastName || '?');
+
+    // Web payment modal state
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [clientSecret, setClientSecret] = useState('');
+    const [paymentLoading, setPaymentLoading] = useState(false);
+
+    const handleReservation = async () => {
+        if (Platform.OS === 'web') {
+            // On web: create PaymentIntent, then show modal with Stripe Elements
+            setPaymentLoading(true);
+            try {
+                const secret = await handlePayment(
+                    mentor.mentorPrice || 0,
+                    mentor.id,
+                    () => {},
+                );
+                if (secret) {
+                    setClientSecret(secret);
+                    setShowPaymentModal(true);
+                }
+            } catch (e) {
+                Alert.alert('Erreur', 'Impossible de préparer le paiement.');
+            } finally {
+                setPaymentLoading(false);
+            }
+        } else {
+            // On native: imperative PaymentSheet flow
+            handlePayment(mentor.mentorPrice || 0, mentor.id, () => {
+                console.log('Booking confirmed!');
+            });
+        }
+    };
 
     const playStyleLabel = mentor.playStyle === 'left' ? '⬅️ Gauche'
         : mentor.playStyle === 'right' ? '➡️ Droite'
@@ -147,13 +183,33 @@ export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScree
                 </View>
 
                 {/* CTA */}
-                <TouchableOpacity style={styles.ctaButton} activeOpacity={0.8}>
-                    <Text style={styles.ctaText}>{'📅 Réserver une session'}</Text>
-                    <Text style={styles.ctaSubtext}>{'Bientôt disponible'}</Text>
+
+                <TouchableOpacity
+                    style={[styles.ctaButton, { opacity: paymentLoading ? 0.6 : 1 }]}
+                    activeOpacity={0.8}
+                    disabled={paymentLoading}
+                    onPress={handleReservation}
+                >
+                    <Text style={styles.ctaText}>
+                        {paymentLoading ? '⏳ Chargement…' : '📅 Réserver une session'}
+                    </Text>
+                    <Text style={styles.ctaSubtext}>{'Paiement sécurisé via Stripe'}</Text>
                 </TouchableOpacity>
 
                 <View style={{ height: Spacing.xxl }} />
             </ScrollView>
+
+            {/* Web-only Stripe payment modal */}
+            <PaymentModal
+                visible={showPaymentModal}
+                clientSecret={clientSecret}
+                onSuccess={() => {
+                    setShowPaymentModal(false);
+                    Alert.alert('Succès', 'Votre paiement est confirmé !');
+                    console.log('Booking confirmed!');
+                }}
+                onCancel={() => setShowPaymentModal(false)}
+            />
         </View>
     );
 }

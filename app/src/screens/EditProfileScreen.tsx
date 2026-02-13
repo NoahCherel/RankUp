@@ -23,6 +23,7 @@ import {
     updateUserProfile,
     uploadProfilePhoto,
 } from '../services/userService';
+import { onboardMentor } from '../services/paymentService';
 import { auth } from '../config/firebase';
 import { UserProfile } from '../types';
 
@@ -238,6 +239,21 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
                         description={mentorDescription}
                         onDescriptionChange={setMentorDescription}
                     />
+
+                    {isMentor && (
+                        <TouchableOpacity
+                            style={styles.stripeButton}
+                            onPress={async () => {
+                                try {
+                                    await onboardMentor();
+                                } catch (e) {
+                                    // Error handled in service
+                                }
+                            }}
+                        >
+                            <Text style={styles.stripeButtonText}>{'🏦 Configurer les virements (Stripe)'}</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
 
                 {/* Save Button */}
@@ -307,7 +323,22 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     saveButton: {
-        marginTop: Spacing.lg,
+        marginTop: Spacing.xl,
         marginBottom: Spacing.xxl,
     },
+    stripeButton: {
+        marginTop: Spacing.md,
+        padding: Spacing.md,
+        backgroundColor: '#635BFF15', // Stripe blurple light
+        borderRadius: BorderRadius.lg,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#635BFF',
+    },
+    stripeButtonText: {
+        color: '#635BFF',
+        fontWeight: '600',
+        fontSize: FontSizes.sm,
+    },
 });
+
