@@ -12,6 +12,7 @@ import {
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Button, TextInput } from '../components';
 import { validateLoginForm, getFieldError } from '../utils/validation';
 
@@ -100,7 +101,7 @@ export default function AuthScreen() {
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.icon}>⚡</Text>
+                    <MaterialCommunityIcons name="lightning-bolt" size={40} color={Colors.primary} />
                     <Text style={styles.logo}>RankUp</Text>
                     <Text style={styles.subtitle}>
                         {mode === 'login'
@@ -171,13 +172,13 @@ export default function AuthScreen() {
                 {/* Social Login (placeholder) */}
                 <View style={styles.socialButtons}>
                     <Button
-                        title="🍎  Continuer avec Apple"
+                        title="Continuer avec Apple"
                         onPress={() => Alert.alert('Info', 'Apple Sign-In sera disponible prochainement')}
                         variant="outline"
                         style={styles.socialButton}
                     />
                     <Button
-                        title="🔵  Continuer avec Google"
+                        title="Continuer avec Google"
                         onPress={() => Alert.alert('Info', 'Google Sign-In sera disponible prochainement')}
                         variant="outline"
                         style={styles.socialButton}

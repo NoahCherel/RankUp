@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 
 export interface ActiveFilters {
@@ -28,7 +29,7 @@ export default function FilterBar({ activeFilters, onOpenFilter, onClearFilters 
                     activeOpacity={0.7}
                 >
                     <Text style={[styles.chipText, hasFilters && styles.chipTextActive]}>
-                        {'⚙️ Filtres'}
+                        {'Filtres'}
                         {filterCount > 0 ? ` (${filterCount})` : ''}
                     </Text>
                 </TouchableOpacity>
@@ -36,7 +37,7 @@ export default function FilterBar({ activeFilters, onOpenFilter, onClearFilters 
                 {activeFilters.league ? (
                     <View style={[styles.chip, styles.chipActive]}>
                         <Text style={[styles.chipText, styles.chipTextActive]}>
-                            {'📍 '}{activeFilters.league.toUpperCase()}
+                            {activeFilters.league.toUpperCase()}
                         </Text>
                     </View>
                 ) : null}
@@ -44,7 +45,7 @@ export default function FilterBar({ activeFilters, onOpenFilter, onClearFilters 
                 {activeFilters.maxPrice ? (
                     <View style={[styles.chip, styles.chipActive]}>
                         <Text style={[styles.chipText, styles.chipTextActive]}>
-                            {'💰 Max '}{activeFilters.maxPrice}{'€'}
+                            {'Max '}{activeFilters.maxPrice}{'€'}
                         </Text>
                     </View>
                 ) : null}
@@ -52,7 +53,7 @@ export default function FilterBar({ activeFilters, onOpenFilter, onClearFilters 
                 {(activeFilters.minRanking || activeFilters.maxRanking) ? (
                     <View style={[styles.chip, styles.chipActive]}>
                         <Text style={[styles.chipText, styles.chipTextActive]}>
-                            {'🏆 '}
+                            {'# '}
                             {activeFilters.minRanking ? `#${activeFilters.minRanking}` : ''}
                             {activeFilters.minRanking && activeFilters.maxRanking ? ' - ' : ''}
                             {activeFilters.maxRanking ? `#${activeFilters.maxRanking}` : ''}

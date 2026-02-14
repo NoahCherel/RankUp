@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, FontSizes, Spacing } from '../theme';
 
 interface SplashScreenProps {
@@ -46,7 +47,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                     },
                 ]}
             >
-                <Text style={styles.icon}>⚡</Text>
+                <MaterialCommunityIcons name="lightning-bolt" size={48} color={Colors.primary} />
                 <Text style={styles.logo}>RankUp</Text>
                 <Text style={styles.tagline}>Elevate your game. Together.</Text>
             </Animated.View>
@@ -66,10 +67,7 @@ const styles = StyleSheet.create({
     content: {
         alignItems: 'center',
     },
-    icon: {
-        fontSize: 64,
-        marginBottom: Spacing.md,
-    },
+
     logo: {
         fontSize: FontSizes.xxl * 1.5,
         fontWeight: 'bold',

@@ -93,7 +93,6 @@ export default function MarketplaceScreen({ onMentorPress }: MarketplaceScreenPr
         if (loading) return null;
         return (
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyEmoji}>{'🔍'}</Text>
                 <Text style={styles.emptyTitle}>{'Aucun mentor trouvé'}</Text>
                 <Text style={styles.emptyText}>
                     {searchQuery
@@ -205,10 +204,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: Spacing.xxl * 2,
     },
-    emptyEmoji: {
-        fontSize: 64,
-        marginBottom: Spacing.md,
-    },
+
     emptyTitle: {
         color: Colors.textPrimary,
         fontSize: FontSizes.lg,

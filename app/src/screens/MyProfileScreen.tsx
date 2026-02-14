@@ -13,6 +13,7 @@ import { auth } from '../config/firebase';
 import { getUserProfile } from '../services/userService';
 import { UserProfile } from '../types';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LoadingSpinner, Button } from '../components/ui';
 import { getInitials } from '../utils/formatters';
 
@@ -74,9 +75,9 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
         return (
             <View style={styles.emptyContainer}>
                 <TouchableOpacity style={styles.backButtonAbsolute} onPress={onBack}>
-                    <Text style={styles.backArrow}>{'←'}</Text>
+                    <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>
-                <Text style={styles.emptyEmoji}>{'😕'}</Text>
+                <Ionicons name="alert-circle-outline" size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
                 <Text style={styles.emptyTitle}>{'Profil introuvable'}</Text>
                 <Text style={styles.emptyText}>
                     {"Ton profil n'a pas été trouvé. Complète ton inscription."}
@@ -95,20 +96,20 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
 
     const initials = getInitials(profile.firstName || '?', profile.lastName || '?');
 
-    const playStyleLabel = profile.playStyle === 'left' ? '⬅️ Gauche'
-        : profile.playStyle === 'right' ? '➡️ Droite'
-            : profile.playStyle === 'both' ? '↔️ Les deux' : '-';
+    const playStyleLabel = profile.playStyle === 'left' ? 'Gauche'
+        : profile.playStyle === 'right' ? 'Droite'
+            : profile.playStyle === 'both' ? 'Les deux' : '-';
 
     return (
         <View style={styles.container}>
             {/* Fixed Header with Back Arrow */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
-                    <Text style={styles.backArrow}>{'←'}</Text>
+                    <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{'Mon Profil'}</Text>
                 <TouchableOpacity style={styles.editBtn} onPress={onEditProfile} activeOpacity={0.7}>
-                    <Text style={styles.editBtnText}>{'✏️'}</Text>
+                    <Ionicons name="create-outline" size={20} color={Colors.textPrimary} />
                 </TouchableOpacity>
             </View>
 
@@ -138,19 +139,26 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
                     <View style={styles.badges}>
                         {profile.nationality ? (
                             <View style={styles.badge}>
-                                <Text style={styles.badgeText}>{'🌍 '}{profile.nationality}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <Ionicons name="globe-outline" size={12} color={Colors.textSecondary} />
+                                    <Text style={styles.badgeText}>{profile.nationality}</Text>
+                                </View>
                             </View>
                         ) : null}
                         {profile.league ? (
                             <View style={styles.badge}>
-                                <Text style={styles.badgeText}>{'📍 '}{profile.league.toUpperCase()}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <Ionicons name="location-outline" size={12} color={Colors.textSecondary} />
+                                    <Text style={styles.badgeText}>{profile.league.toUpperCase()}</Text>
+                                </View>
                             </View>
                         ) : null}
                         {profile.isMentor ? (
                             <View style={[styles.badge, styles.mentorBadge]}>
-                                <Text style={[styles.badgeText, styles.mentorBadgeText]}>
-                                    {'🎯 Mentor'}
-                                </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <Ionicons name="shield-checkmark" size={12} color={Colors.primary} />
+                                    <Text style={[styles.badgeText, styles.mentorBadgeText]}>{'Mentor'}</Text>
+                                </View>
                             </View>
                         ) : null}
                     </View>
@@ -159,19 +167,19 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
                 {/* Stats Cards */}
                 <View style={styles.statsRow}>
                     <View style={styles.statCard}>
-                        <Text style={styles.statIcon}>{'🏆'}</Text>
+                        <Ionicons name="trophy" size={20} color={Colors.primary} style={{ marginBottom: Spacing.xs }} />
                         <Text style={styles.statValue}>
                             {profile.ranking ? `#${profile.ranking}` : '-'}
                         </Text>
                         <Text style={styles.statLabel}>{'Classement'}</Text>
                     </View>
                     <View style={[styles.statCard, styles.statCardCenter]}>
-                        <Text style={styles.statIcon}>{'🎾'}</Text>
+                        <MaterialCommunityIcons name="tennis" size={20} color={Colors.primary} style={{ marginBottom: Spacing.xs }} />
                         <Text style={styles.statValue}>{profile.matchesPlayed || 0}</Text>
                         <Text style={styles.statLabel}>{'Matchs'}</Text>
                     </View>
                     <View style={styles.statCard}>
-                        <Text style={styles.statIcon}>{'⭐'}</Text>
+                        <Ionicons name="star" size={20} color={Colors.warning} style={{ marginBottom: Spacing.xs }} />
                         <Text style={styles.statValue}>
                             {profile.averageRating ? profile.averageRating.toFixed(1) : '-'}
                         </Text>
@@ -181,7 +189,10 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
 
                 {/* Padel Info Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{'🎾 Padel'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
+                        <MaterialCommunityIcons name="tennis" size={18} color={Colors.textPrimary} />
+                        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{'Padel'}</Text>
+                    </View>
                     <InfoRow label="Ligue" value={profile.league?.toUpperCase() || '-'} />
                     <InfoRow label="Club" value={profile.club || '-'} />
                     <InfoRow label="Position" value={playStyleLabel} isLast />
@@ -190,7 +201,10 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
                 {/* Mentor Info */}
                 {profile.isMentor ? (
                     <View style={[styles.section, styles.mentorSection]}>
-                        <Text style={styles.sectionTitle}>{'🎯 Mode Mentor'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
+                            <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
+                            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{'Mode Mentor'}</Text>
+                        </View>
                         <InfoRow
                             label="Tarif / session"
                             value={`${profile.mentorPrice || 0}€`}
@@ -215,7 +229,10 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
 
                 {/* Edit Profile Button */}
                 <TouchableOpacity style={styles.editProfileButton} onPress={onEditProfile} activeOpacity={0.8}>
-                    <Text style={styles.editProfileText}>{'✏️ Modifier mon profil'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Ionicons name="create-outline" size={18} color={Colors.background} />
+                        <Text style={styles.editProfileText}>{'Modifier mon profil'}</Text>
+                    </View>
                 </TouchableOpacity>
 
                 {/* Logout */}

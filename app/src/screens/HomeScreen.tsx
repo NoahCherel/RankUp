@@ -6,8 +6,8 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Animated,
 } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { auth } from '../config/firebase';
 import { getUserProfile } from '../services/userService';
@@ -16,9 +16,11 @@ import { getInitials } from '../utils/formatters';
 
 interface HomeScreenProps {
     onNavigateProfile?: () => void;
+    onNavigateMarketplace?: () => void;
+    onNavigateBookings?: () => void;
 }
 
-export default function HomeScreen({ onNavigateProfile }: HomeScreenProps) {
+export default function HomeScreen({ onNavigateProfile, onNavigateMarketplace, onNavigateBookings }: HomeScreenProps) {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [greeting, setGreeting] = useState('');
 
@@ -48,8 +50,9 @@ export default function HomeScreen({ onNavigateProfile }: HomeScreenProps) {
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
             {/* Header */}
             <View style={styles.header}>
-                <View>
-                    <Text style={styles.logoText}>{'⚡ RankUp'}</Text>
+                <View style={styles.logoWrap}>
+                    <MaterialCommunityIcons name="lightning-bolt" size={22} color={Colors.primary} />
+                    <Text style={styles.logoText}>{'RankUp'}</Text>
                 </View>
                 <TouchableOpacity style={styles.avatarButton} onPress={onNavigateProfile}>
                     {profile?.photoURL ? (
@@ -74,19 +77,25 @@ export default function HomeScreen({ onNavigateProfile }: HomeScreenProps) {
             {/* Quick Stats */}
             <View style={styles.statsRow}>
                 <View style={styles.statCard}>
-                    <Text style={styles.statIcon}>{'🎾'}</Text>
+                    <View style={styles.statIconWrap}>
+                        <MaterialCommunityIcons name="tennis" size={22} color={Colors.secondary} />
+                    </View>
                     <Text style={styles.statValue}>{profile?.matchesPlayed || 0}</Text>
                     <Text style={styles.statLabel}>{'Matchs'}</Text>
                 </View>
                 <View style={[styles.statCard, styles.statCardHighlight]}>
-                    <Text style={styles.statIcon}>{'🏆'}</Text>
+                    <View style={styles.statIconWrap}>
+                        <Ionicons name="trophy" size={22} color={Colors.primary} />
+                    </View>
                     <Text style={[styles.statValue, styles.statValueHighlight]}>
                         {profile?.ranking ? `#${profile.ranking}` : '-'}
                     </Text>
                     <Text style={styles.statLabel}>{'Classement'}</Text>
                 </View>
                 <View style={styles.statCard}>
-                    <Text style={styles.statIcon}>{'⭐'}</Text>
+                    <View style={styles.statIconWrap}>
+                        <Ionicons name="star" size={22} color={Colors.warning} />
+                    </View>
                     <Text style={styles.statValue}>
                         {profile?.averageRating ? profile.averageRating.toFixed(1) : '-'}
                     </Text>
@@ -97,52 +106,37 @@ export default function HomeScreen({ onNavigateProfile }: HomeScreenProps) {
             {/* Quick Actions */}
             <Text style={styles.sectionTitle}>{'Actions rapides'}</Text>
             <View style={styles.actionsGrid}>
-                <TouchableOpacity style={styles.actionCard} onPress={onNavigateProfile}>
-                    <View style={[styles.actionIconBg, { backgroundColor: '#EAB30820' }]}>
-                        <Text style={styles.actionIcon}>{'👤'}</Text>
+                <TouchableOpacity style={styles.actionCard} onPress={onNavigateProfile} activeOpacity={0.7}>
+                    <View style={[styles.actionIconBg, { backgroundColor: '#EAB30815' }]}>
+                        <Ionicons name="person" size={22} color={Colors.primary} />
                     </View>
                     <Text style={styles.actionTitle}>{'Mon Profil'}</Text>
                     <Text style={styles.actionSubtitle}>{'Voir et modifier'}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
-                    <View style={[styles.actionIconBg, { backgroundColor: '#38BDF820' }]}>
-                        <Text style={styles.actionIcon}>{'🔍'}</Text>
+                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onNavigateMarketplace}>
+                    <View style={[styles.actionIconBg, { backgroundColor: '#38BDF815' }]}>
+                        <Ionicons name="search" size={22} color={Colors.secondary} />
                     </View>
-                    <Text style={styles.actionTitle}>{'Trouver'}</Text>
-                    <Text style={styles.actionSubtitle}>{'Bientôt disponible'}</Text>
+                    <Text style={styles.actionTitle}>{'Explorer'}</Text>
+                    <Text style={styles.actionSubtitle}>{'Trouver un mentor'}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
-                    <View style={[styles.actionIconBg, { backgroundColor: '#22C55E20' }]}>
-                        <Text style={styles.actionIcon}>{'📅'}</Text>
+                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onNavigateBookings}>
+                    <View style={[styles.actionIconBg, { backgroundColor: '#22C55E15' }]}>
+                        <Ionicons name="calendar" size={22} color={Colors.success} />
                     </View>
-                    <Text style={styles.actionTitle}>{'Réserver'}</Text>
-                    <Text style={styles.actionSubtitle}>{'Bientôt disponible'}</Text>
+                    <Text style={styles.actionTitle}>{'Sessions'}</Text>
+                    <Text style={styles.actionSubtitle}>{'Mes réservations'}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
-                    <View style={[styles.actionIconBg, { backgroundColor: '#EF444420' }]}>
-                        <Text style={styles.actionIcon}>{'🎯'}</Text>
+                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onNavigateMarketplace}>
+                    <View style={[styles.actionIconBg, { backgroundColor: '#EF444415' }]}>
+                        <MaterialCommunityIcons name="account-star" size={22} color={Colors.error} />
                     </View>
                     <Text style={styles.actionTitle}>{'Mentors'}</Text>
-                    <Text style={styles.actionSubtitle}>{'Bientôt disponible'}</Text>
+                    <Text style={styles.actionSubtitle}>{'Voir les mentors'}</Text>
                 </TouchableOpacity>
-            </View>
-
-            {/* Coming Soon Banner */}
-            <View style={styles.banner}>
-                <View style={styles.bannerGlow} />
-                <Text style={styles.bannerEmoji}>{'🚀'}</Text>
-                <Text style={styles.bannerTitle}>{'Marketplace en construction'}</Text>
-                <Text style={styles.bannerText}>
-                    {'Recherche de partenaires, réservation de sessions et mentoring arrivent bientôt !'}
-                </Text>
-                <View style={styles.bannerDots}>
-                    <View style={[styles.bannerDot, styles.bannerDotActive]} />
-                    <View style={styles.bannerDot} />
-                    <View style={styles.bannerDot} />
-                </View>
             </View>
         </ScrollView>
     );
@@ -163,6 +157,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingTop: Spacing.xxl + 8,
         paddingBottom: Spacing.md,
+    },
+    logoWrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
     logoText: {
         fontSize: FontSizes.xl,
@@ -226,8 +225,7 @@ const styles = StyleSheet.create({
         borderColor: Colors.primary,
         backgroundColor: '#EAB30810',
     },
-    statIcon: {
-        fontSize: 24,
+    statIconWrap: {
         marginBottom: Spacing.xs,
     },
     statValue: {
@@ -274,9 +272,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: Spacing.sm,
     },
-    actionIcon: {
-        fontSize: 22,
-    },
     actionTitle: {
         color: Colors.textPrimary,
         fontSize: FontSizes.md,
@@ -286,55 +281,5 @@ const styles = StyleSheet.create({
         color: Colors.textSecondary,
         fontSize: FontSizes.xs,
         marginTop: 2,
-    },
-    banner: {
-        marginHorizontal: Spacing.lg,
-        backgroundColor: Colors.backgroundSecondary,
-        borderRadius: BorderRadius.xl,
-        padding: Spacing.xl,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: Colors.border,
-        overflow: 'hidden',
-    },
-    bannerGlow: {
-        position: 'absolute',
-        top: -40,
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: Colors.primary,
-        opacity: 0.06,
-    },
-    bannerEmoji: {
-        fontSize: 40,
-        marginBottom: Spacing.sm,
-    },
-    bannerTitle: {
-        color: Colors.textPrimary,
-        fontSize: FontSizes.lg,
-        fontWeight: '700',
-        marginBottom: Spacing.xs,
-    },
-    bannerText: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.sm,
-        textAlign: 'center',
-        lineHeight: 20,
-        marginBottom: Spacing.md,
-    },
-    bannerDots: {
-        flexDirection: 'row',
-        gap: Spacing.xs,
-    },
-    bannerDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: Colors.border,
-    },
-    bannerDotActive: {
-        backgroundColor: Colors.primary,
-        width: 24,
     },
 });

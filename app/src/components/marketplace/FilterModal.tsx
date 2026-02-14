@@ -10,6 +10,7 @@ import {
     Pressable,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
+import { Ionicons } from '@expo/vector-icons';
 import { ActiveFilters } from './FilterBar';
 
 const LEAGUES = [
@@ -70,13 +71,13 @@ export default function FilterModal({ visible, onClose, filters, onApply }: Filt
                     <View style={styles.header}>
                         <Text style={styles.title}>{'Filtres'}</Text>
                         <TouchableOpacity onPress={onClose}>
-                            <Text style={styles.closeText}>{'✕'}</Text>
+                            <Ionicons name="close" size={24} color={Colors.textSecondary} />
                         </TouchableOpacity>
                     </View>
 
                     <ScrollView showsVerticalScrollIndicator={false}>
                         {/* League */}
-                        <Text style={styles.sectionTitle}>{'📍 Ligue'}</Text>
+                        <Text style={styles.sectionTitle}>{'Ligue'}</Text>
                         <View style={styles.leagueGrid}>
                             {LEAGUES.map((l) => (
                                 <TouchableOpacity
@@ -100,7 +101,7 @@ export default function FilterModal({ visible, onClose, filters, onApply }: Filt
                         </View>
 
                         {/* Price */}
-                        <Text style={styles.sectionTitle}>{'💰 Prix maximum (€)'}</Text>
+                        <Text style={styles.sectionTitle}>{'Prix maximum (€)'}</Text>
                         <RNTextInput
                             style={styles.textInput}
                             value={maxPrice}
@@ -111,7 +112,7 @@ export default function FilterModal({ visible, onClose, filters, onApply }: Filt
                         />
 
                         {/* Ranking */}
-                        <Text style={styles.sectionTitle}>{'🏆 Classement'}</Text>
+                        <Text style={styles.sectionTitle}>{'Classement'}</Text>
                         <View style={styles.rangeRow}>
                             <View style={styles.rangeInput}>
                                 <Text style={styles.rangeLabel}>{'Min'}</Text>
@@ -189,10 +190,7 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.xl,
         fontWeight: '800',
     },
-    closeText: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.xl,
-    },
+
     sectionTitle: {
         color: Colors.textPrimary,
         fontSize: FontSizes.md,

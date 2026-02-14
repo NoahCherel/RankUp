@@ -6,6 +6,7 @@ import {
     Switch,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
+import { Ionicons } from '@expo/vector-icons';
 import { TextInput } from '../ui';
 
 interface MentorToggleProps {
@@ -30,7 +31,7 @@ export default function MentorToggle({
             {/* Toggle Header */}
             <View style={styles.header}>
                 <View style={styles.headerText}>
-                    <Text style={styles.title}>🎯 Mode Mentor</Text>
+                    <Text style={styles.title}>Mode Mentor</Text>
                     <Text style={styles.subtitle}>
                         Propose tes services aux autres joueurs
                     </Text>
@@ -60,7 +61,7 @@ export default function MentorToggle({
                             keyboardType="numeric"
                         />
                         <Text style={styles.priceHint}>
-                            💡 Prix moyen : 40-80€/session
+                            Prix moyen : 40-80€/session
                         </Text>
                     </View>
 
@@ -75,7 +76,7 @@ export default function MentorToggle({
                     />
 
                     <View style={styles.infoCard}>
-                        <Text style={styles.infoTitle}>✨ Avantages Mentor</Text>
+                        <Text style={styles.infoTitle}>Avantages Mentor</Text>
                         <Text style={styles.infoText}>
                             • Apparais dans la recherche{'\n'}
                             • Reçois des demandes de réservation{'\n'}

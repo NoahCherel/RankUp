@@ -8,6 +8,7 @@ import {
     Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 import { getInitials } from '../../utils/formatters';
 
@@ -86,7 +87,7 @@ export default function AvatarPicker({
 
             {editable && (
                 <View style={styles.editBadge}>
-                    <Text style={styles.editIcon}>📷</Text>
+                    <Ionicons name="camera-outline" size={18} color={Colors.background} />
                 </View>
             )}
         </TouchableOpacity>
@@ -125,7 +126,5 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: Colors.background,
     },
-    editIcon: {
-        fontSize: 16,
-    },
+
 });

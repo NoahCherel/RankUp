@@ -1,18 +1,20 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
+import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, Spacing, FontSizes } from '../../theme';
 
-export type TabName = 'home' | 'marketplace' | 'profile';
+export type TabName = 'home' | 'marketplace' | 'bookings' | 'profile';
 
 interface BottomTabBarProps {
     activeTab: TabName;
     onTabPress: (tab: TabName) => void;
 }
 
-const tabs: { key: TabName; label: string; icon: string }[] = [
-    { key: 'home', label: 'Accueil', icon: '🏠' },
-    { key: 'marketplace', label: 'Marketplace', icon: '🔍' },
-    { key: 'profile', label: 'Profil', icon: '👤' },
+const tabs: { key: TabName; label: string; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
+    { key: 'home', label: 'Accueil', icon: 'home-outline', iconActive: 'home' },
+    { key: 'marketplace', label: 'Explorer', icon: 'search-outline', iconActive: 'search' },
+    { key: 'bookings', label: 'Sessions', icon: 'calendar-outline', iconActive: 'calendar' },
+    { key: 'profile', label: 'Profil', icon: 'person-outline', iconActive: 'person' },
 ];
 
 export default function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
@@ -23,17 +25,20 @@ export default function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProp
                 return (
                     <TouchableOpacity
                         key={tab.key}
-                        style={[styles.tab, isActive && styles.tabActive]}
+                        style={styles.tab}
                         onPress={() => onTabPress(tab.key)}
                         activeOpacity={0.7}
                     >
-                        <Text style={[styles.icon, isActive && styles.iconActive]}>
-                            {tab.icon}
-                        </Text>
+                        <View style={[styles.iconWrap, isActive && styles.iconWrapActive]}>
+                            <Ionicons
+                                name={isActive ? tab.iconActive : tab.icon}
+                                size={22}
+                                color={isActive ? Colors.primary : Colors.textSecondary}
+                            />
+                        </View>
                         <Text style={[styles.label, isActive && styles.labelActive]}>
                             {tab.label}
                         </Text>
-                        {isActive && <View style={styles.indicator} />}
                     </TouchableOpacity>
                 );
             })}
@@ -47,7 +52,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.backgroundSecondary,
         borderTopWidth: 1,
         borderTopColor: Colors.border,
-        paddingBottom: 16, // safe area
+        paddingBottom: Platform.OS === 'ios' ? 24 : 10,
         paddingTop: Spacing.sm,
     },
     tab: {
@@ -55,32 +60,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: Spacing.xs,
-        position: 'relative',
     },
-    tabActive: {},
-    icon: {
-        fontSize: 20,
+    iconWrap: {
+        width: 36,
+        height: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 14,
         marginBottom: 2,
-        opacity: 0.5,
     },
-    iconActive: {
-        opacity: 1,
+    iconWrapActive: {
+        backgroundColor: 'rgba(234, 179, 8, 0.12)',
     },
     label: {
-        fontSize: FontSizes.xs,
+        fontSize: 11,
         color: Colors.textSecondary,
         fontWeight: '500',
     },
     labelActive: {
         color: Colors.primary,
-        fontWeight: '700',
-    },
-    indicator: {
-        position: 'absolute',
-        top: -Spacing.sm,
-        width: 24,
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: Colors.primary,
+        fontWeight: '600',
     },
 });

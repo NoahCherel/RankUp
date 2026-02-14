@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, TextInput as RNTextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 
 interface SearchBarProps {
@@ -11,7 +12,7 @@ interface SearchBarProps {
 export default function SearchBar({ value, onChangeText, placeholder = 'Rechercher un mentor...' }: SearchBarProps) {
     return (
         <View style={styles.container}>
-            <Text style={styles.icon}>{'🔍'}</Text>
+            <Ionicons name="search" size={18} color={Colors.textSecondary} style={{ marginRight: Spacing.sm }} />
             <RNTextInput
                 style={styles.input}
                 value={value}
@@ -24,7 +25,7 @@ export default function SearchBar({ value, onChangeText, placeholder = 'Recherch
             />
             {value.length > 0 && (
                 <TouchableOpacity onPress={() => onChangeText('')} style={styles.clearButton}>
-                    <Text style={styles.clearText}>{'✕'}</Text>
+                    <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
                 </TouchableOpacity>
             )}
         </View>
@@ -42,10 +43,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.border,
     },
-    icon: {
-        fontSize: FontSizes.md,
-        marginRight: Spacing.sm,
-    },
+
     input: {
         flex: 1,
         color: Colors.textPrimary,
@@ -60,9 +58,5 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    clearText: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.xs,
-        fontWeight: '600',
-    },
+
 });

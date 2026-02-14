@@ -8,6 +8,7 @@ import {
     FlatList,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
+import { Ionicons } from '@expo/vector-icons';
 
 // French Padel Leagues
 const LEAGUES = [
@@ -27,10 +28,10 @@ const LEAGUES = [
 ];
 
 // Play styles
-const PLAY_STYLES = [
-    { id: 'left', name: 'Côté gauche', icon: '⬅️', description: 'Volée et revers' },
-    { id: 'right', name: 'Côté droit', icon: '➡️', description: 'Coups droits et smash' },
-    { id: 'both', name: 'Les deux', icon: '↔️', description: 'Polyvalent' },
+const PLAY_STYLES: { id: string; name: string; iconName: keyof typeof Ionicons.glyphMap; description: string }[] = [
+    { id: 'left', name: 'Côté gauche', iconName: 'arrow-back', description: 'Volée et revers' },
+    { id: 'right', name: 'Côté droit', iconName: 'arrow-forward', description: 'Coups droits et smash' },
+    { id: 'both', name: 'Les deux', iconName: 'swap-horizontal', description: 'Polyvalent' },
 ];
 
 interface PlayStyleSelectorProps {
@@ -57,7 +58,7 @@ export function PlayStyleSelector({
                         ]}
                         onPress={() => onChange(style.id as 'left' | 'right' | 'both')}
                     >
-                        <Text style={styles.playStyleIcon}>{style.icon}</Text>
+                        <Ionicons name={style.iconName} size={22} color={value === style.id ? Colors.primary : Colors.textSecondary} style={{ marginBottom: Spacing.xs }} />
                         <Text
                             style={[
                                 styles.playStyleName,
@@ -116,7 +117,7 @@ export function LeagueSelector({
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Ligue</Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Text style={styles.closeButton}>✕</Text>
+                                <Ionicons name="close" size={24} color={Colors.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
@@ -136,7 +137,7 @@ export function LeagueSelector({
                                 >
                                     <Text style={styles.optionText}>{item.name}</Text>
                                     {item.id === value && (
-                                        <Text style={styles.checkmark}>✓</Text>
+                                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
                                     )}
                                 </TouchableOpacity>
                             )}

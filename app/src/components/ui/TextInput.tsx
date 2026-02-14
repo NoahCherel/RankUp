@@ -7,6 +7,7 @@ import {
     TextInputProps as RNTextInputProps,
     TouchableOpacity,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 
 interface TextInputProps extends RNTextInputProps {
@@ -66,9 +67,11 @@ export default function TextInput({
                         style={styles.iconRight}
                         onPress={() => setIsPasswordVisible(!isPasswordVisible)}
                     >
-                        <Text style={styles.eyeIcon}>
-                            {isPasswordVisible ? '👁️' : '🔒'}
-                        </Text>
+                        <Ionicons
+                            name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'}
+                            size={20}
+                            color={Colors.textSecondary}
+                        />
                     </TouchableOpacity>
                 )}
 
@@ -118,9 +121,7 @@ const styles = StyleSheet.create({
     iconRight: {
         paddingRight: Spacing.md,
     },
-    eyeIcon: {
-        fontSize: FontSizes.lg,
-    },
+
     error: {
         color: Colors.error,
         fontSize: FontSizes.xs,
