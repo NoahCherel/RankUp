@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
+import { Ionicons } from '@expo/vector-icons';
 import { Button, TextInput, LoadingSpinner } from '../components';
 import {
     AvatarPicker,
@@ -123,7 +124,7 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
 
             await updateUserProfile(userId, profileUpdate);
 
-            Alert.alert('✅ Profil mis à jour', 'Tes modifications ont été enregistrées.');
+            Alert.alert('Profil mis à jour', 'Tes modifications ont été enregistrées.');
             onBack();
         } catch (error) {
             console.error('Save profile error:', error);
@@ -145,7 +146,7 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                    <Text style={styles.backIcon}>←</Text>
+                    <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Modifier mon profil</Text>
                 <View style={styles.headerSpacer} />
@@ -167,7 +168,7 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
 
                 {/* Personal Info */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>👤 Informations personnelles</Text>
+                    <Text style={styles.sectionTitle}>Informations personnelles</Text>
 
                     <TextInput
                         label="Prénom"
@@ -203,7 +204,7 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
 
                 {/* Padel Info */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>🎾 Padel</Text>
+                    <Text style={styles.sectionTitle}>Padel</Text>
 
                     <TextInput
                         label="Classement FFT"
@@ -251,7 +252,7 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
                                 }
                             }}
                         >
-                            <Text style={styles.stripeButtonText}>{'🏦 Configurer les virements (Stripe)'}</Text>
+                            <Text style={styles.stripeButtonText}>{'Configurer les virements (Stripe)'}</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -287,10 +288,7 @@ const styles = StyleSheet.create({
     backButton: {
         padding: Spacing.sm,
     },
-    backIcon: {
-        color: Colors.textPrimary,
-        fontSize: FontSizes.xl,
-    },
+
     headerTitle: {
         color: Colors.textPrimary,
         fontSize: FontSizes.lg,

@@ -145,7 +145,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
     const renderStep1 = () => (
         <>
-            <Text style={styles.stepTitle}>👤 Qui es-tu ?</Text>
+            <Text style={styles.stepTitle}>Qui es-tu ?</Text>
             <Text style={styles.stepSubtitle}>
                 Présente-toi à la communauté RankUp
             </Text>
@@ -200,7 +200,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
     const renderStep2 = () => (
         <>
-            <Text style={styles.stepTitle}>🎾 Ton niveau Padel</Text>
+            <Text style={styles.stepTitle}>Ton niveau Padel</Text>
             <Text style={styles.stepSubtitle}>
                 Ces infos aident à trouver le partenaire idéal
             </Text>
@@ -235,7 +235,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
     const renderStep3 = () => (
         <>
-            <Text style={styles.stepTitle}>🎉 C'est parti !</Text>
+            <Text style={styles.stepTitle}>C'est parti !</Text>
             <Text style={styles.stepSubtitle}>
                 Ton profil est presque prêt
             </Text>

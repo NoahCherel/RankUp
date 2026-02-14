@@ -42,12 +42,18 @@ export interface Booking {
     clientId: string;
     mentorId: string;
 
+    // Client & mentor names for display
+    clientName?: string;
+    mentorName?: string;
+
     sessionType: 'tournament' | 'sparring';
     date: Date;
     location: string;
     price: number;
+    appFee?: number;
 
     status: BookingStatus;
+    stripePaymentIntentId?: string;
 
     createdAt: Date;
     updatedAt: Date;

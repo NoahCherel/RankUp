@@ -8,6 +8,7 @@ import {
     FlatList,
     TextInput as RNTextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 
 // Common nationalities for Padel players (French-focused)
@@ -91,7 +92,7 @@ export default function NationalitySelector({
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Nationalité</Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Text style={styles.closeButton}>✕</Text>
+                                <Ionicons name="close" size={24} color={Colors.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
@@ -117,7 +118,7 @@ export default function NationalitySelector({
                                     <Text style={styles.optionFlag}>{item.flag}</Text>
                                     <Text style={styles.optionText}>{item.name}</Text>
                                     {item.code === value && (
-                                        <Text style={styles.checkmark}>✓</Text>
+                                        <Ionicons name="checkmark" size={20} color={Colors.primary} />
                                     )}
                                 </TouchableOpacity>
                             )}
@@ -203,10 +204,7 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.lg,
         fontWeight: '600',
     },
-    closeButton: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.xl,
-    },
+
     searchInput: {
         backgroundColor: Colors.backgroundSecondary,
         margin: Spacing.md,
@@ -234,9 +232,5 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.md,
         flex: 1,
     },
-    checkmark: {
-        color: Colors.primary,
-        fontSize: FontSizes.lg,
-        fontWeight: 'bold',
-    },
+
 });

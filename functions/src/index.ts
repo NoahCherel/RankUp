@@ -4,6 +4,7 @@ import Stripe from "stripe";
 
 admin.initializeApp();
 const db = admin.firestore();
+const messaging = admin.messaging();
 
 // ---------------------------------------------------------------------------
 // Stripe init — key comes from functions/.env (STRIPE_SECRET_KEY=sk_test_…)
@@ -108,29 +109,34 @@ export const createPaymentIntent = functions.region('europe-west1').https.onCall
     }
 
     try {
-        // Get mentor's Stripe Account ID
+        // Get mentor's Stripe Account ID (may not exist yet for MVP)
         const mentorDoc = await db.collection("users").doc(mentorId).get();
         const mentorData = mentorDoc.data();
         const connectedAccountId = mentorData?.stripeAccountId;
 
-        if (!connectedAccountId) {
-            throw new functions.https.HttpsError("failed-precondition", "Mentor has not set up payments.");
-        }
-
-        // Calculate application fee (e.g., 15%)
-        const applicationFeeAmount = Math.round(amount * 0.15);
-
-        const paymentIntent = await stripe.paymentIntents.create({
+        // Build PaymentIntent params
+        const intentParams: Stripe.PaymentIntentCreateParams = {
             amount: amount, // amount in cents
             currency: currency || "eur",
             automatic_payment_methods: {
                 enabled: true,
             },
-            application_fee_amount: applicationFeeAmount,
-            transfer_data: {
-                destination: connectedAccountId,
+            metadata: {
+                mentorId,
+                clientId: context.auth.uid,
             },
-        });
+        };
+
+        // If mentor has Stripe Connect, use transfer_data
+        if (connectedAccountId) {
+            const applicationFeeAmount = Math.round(amount * 0.15);
+            intentParams.application_fee_amount = applicationFeeAmount;
+            intentParams.transfer_data = {
+                destination: connectedAccountId,
+            };
+        }
+
+        const paymentIntent = await stripe.paymentIntents.create(intentParams);
 
         return {
             clientSecret: paymentIntent.client_secret,
@@ -141,3 +147,123 @@ export const createPaymentIntent = functions.region('europe-west1').https.onCall
         throw new functions.https.HttpsError("internal", "Unable to create payment intent.");
     }
 });
+
+// =========================================================================
+// BOOKING WORKFLOW
+// =========================================================================
+
+/**
+ * Helper — send a push notification via FCM.
+ * Silently fails if token is missing or invalid (non-blocking).
+ */
+async function sendPushNotification(
+    userId: string,
+    title: string,
+    body: string,
+    data?: Record<string, string>,
+): Promise<void> {
+    try {
+        const userDoc = await db.collection("users").doc(userId).get();
+        const fcmToken = userDoc.data()?.fcmToken;
+        if (!fcmToken) {
+            console.log(`No FCM token for user ${userId}, skipping push.`);
+            return;
+        }
+        await messaging.send({
+            token: fcmToken,
+            notification: { title, body },
+            data: data ?? {},
+        });
+        console.log(`Push sent to ${userId}: ${title}`);
+    } catch (err) {
+        console.warn(`Push to ${userId} failed (non-blocking):`, err);
+    }
+}
+
+/**
+ * Firestore trigger — when a booking is created, notify the mentor.
+ */
+export const onBookingCreated = functions
+    .region("europe-west1")
+    .firestore.document("bookings/{bookingId}")
+    .onCreate(async (snap, context) => {
+        const booking = snap.data();
+        const mentorId = booking.mentorId;
+        const clientName = booking.clientName || "Un joueur";
+
+        await sendPushNotification(
+            mentorId,
+            "📩 Nouvelle demande de session",
+            `${clientName} souhaite réserver une session avec vous.`,
+            { bookingId: context.params.bookingId, type: "booking_request" },
+        );
+    });
+
+/**
+ * Firestore trigger — when a booking status changes, notify the relevant user.
+ */
+export const onBookingStatusChanged = functions
+    .region("europe-west1")
+    .firestore.document("bookings/{bookingId}")
+    .onUpdate(async (change, context) => {
+        const before = change.before.data();
+        const after = change.after.data();
+
+        if (before.status === after.status) return; // no status change
+
+        const bookingId = context.params.bookingId;
+        const mentorName = after.mentorName || "Le mentor";
+        const clientName = after.clientName || "Le joueur";
+
+        switch (after.status) {
+            case "confirmed":
+                // Notify client that mentor accepted
+                await sendPushNotification(
+                    after.clientId,
+                    "✅ Réservation confirmée !",
+                    `${mentorName} a accepté votre session.`,
+                    { bookingId, type: "booking_confirmed" },
+                );
+                break;
+
+            case "rejected":
+                // Notify client that mentor declined
+                await sendPushNotification(
+                    after.clientId,
+                    "❌ Demande refusée",
+                    `${mentorName} n'est pas disponible pour cette session.`,
+                    { bookingId, type: "booking_rejected" },
+                );
+                break;
+
+            case "cancelled":
+                // Notify the other party
+                // If the updater is the client, notify mentor; vice-versa
+                if (after.cancelledBy === after.clientId) {
+                    await sendPushNotification(
+                        after.mentorId,
+                        "🚫 Réservation annulée",
+                        `${clientName} a annulé la session.`,
+                        { bookingId, type: "booking_cancelled" },
+                    );
+                } else {
+                    await sendPushNotification(
+                        after.clientId,
+                        "🚫 Réservation annulée",
+                        `${mentorName} a annulé la session.`,
+                        { bookingId, type: "booking_cancelled" },
+                    );
+                }
+                break;
+
+            case "completed":
+                // Notify client to leave a review
+                await sendPushNotification(
+                    after.clientId,
+                    "⭐ Session terminée",
+                    "N'oubliez pas de laisser un avis !",
+                    { bookingId, type: "booking_completed" },
+                );
+                break;
+        }
+    });

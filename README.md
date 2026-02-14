@@ -71,8 +71,8 @@ src/
 
 - [x] US #1 - Infrastructure & Authentification
 - [x] US #2 - Profil Utilisateur Unifié
-- [ ] US #3 - Marketplace & Filtres
-- [ ] US #4 - Intégration Stripe
+- [x] US #3 - Marketplace & Filtres
+- [x] US #4 - Intégration Stripe
 - [ ] US #5 - Workflow Réservation
 - [ ] US #6 - Messagerie & Avis
 - [ ] US #7 - Finitions & Demo

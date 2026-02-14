@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -6,58 +6,26 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Platform,
-    Alert,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
+import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { UserProfile } from '../types';
 import { getInitials } from '../utils/formatters';
-import { handlePayment } from '../services/paymentService';
-import PaymentModal from '../components/payment/PaymentModal';
+import { auth } from '../config/firebase';
 
 interface MentorDetailScreenProps {
     mentor: UserProfile;
     onBack: () => void;
+    onBooking: () => void;
 }
 
-export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScreenProps) {
+export default function MentorDetailScreen({ mentor, onBack, onBooking }: MentorDetailScreenProps) {
     const initials = getInitials(mentor.firstName || '?', mentor.lastName || '?');
+    const isSelf = auth.currentUser?.uid === mentor.id;
 
-    // Web payment modal state
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [clientSecret, setClientSecret] = useState('');
-    const [paymentLoading, setPaymentLoading] = useState(false);
-
-    const handleReservation = async () => {
-        if (Platform.OS === 'web') {
-            // On web: create PaymentIntent, then show modal with Stripe Elements
-            setPaymentLoading(true);
-            try {
-                const secret = await handlePayment(
-                    mentor.mentorPrice || 0,
-                    mentor.id,
-                    () => {},
-                );
-                if (secret) {
-                    setClientSecret(secret);
-                    setShowPaymentModal(true);
-                }
-            } catch (e) {
-                Alert.alert('Erreur', 'Impossible de préparer le paiement.');
-            } finally {
-                setPaymentLoading(false);
-            }
-        } else {
-            // On native: imperative PaymentSheet flow
-            handlePayment(mentor.mentorPrice || 0, mentor.id, () => {
-                console.log('Booking confirmed!');
-            });
-        }
-    };
-
-    const playStyleLabel = mentor.playStyle === 'left' ? '⬅️ Gauche'
-        : mentor.playStyle === 'right' ? '➡️ Droite'
-            : mentor.playStyle === 'both' ? '↔️ Les deux' : '-';
+    const playStyleLabel = mentor.playStyle === 'left' ? 'Gauche'
+        : mentor.playStyle === 'right' ? 'Droite'
+            : mentor.playStyle === 'both' ? 'Les deux' : '-';
 
     const renderStars = (rating: number) => {
         const full = Math.floor(rating);
@@ -71,7 +39,7 @@ export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScree
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
-                    <Text style={styles.backArrow}>{'←'}</Text>
+                    <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{'Profil Mentor'}</Text>
                 <View style={styles.headerSpacer} />
@@ -100,18 +68,25 @@ export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScree
                     <View style={styles.badges}>
                         {mentor.nationality ? (
                             <View style={styles.badge}>
-                                <Text style={styles.badgeText}>{'🌍 '}{mentor.nationality}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <Ionicons name="globe-outline" size={12} color={Colors.textSecondary} />
+                                    <Text style={styles.badgeText}>{mentor.nationality}</Text>
+                                </View>
                             </View>
                         ) : null}
                         {mentor.league ? (
                             <View style={styles.badge}>
-                                <Text style={styles.badgeText}>{'📍 '}{mentor.league.toUpperCase()}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <Ionicons name="location-outline" size={12} color={Colors.textSecondary} />
+                                    <Text style={styles.badgeText}>{mentor.league.toUpperCase()}</Text>
+                                </View>
                             </View>
                         ) : null}
                         <View style={[styles.badge, styles.mentorBadge]}>
-                            <Text style={[styles.badgeText, styles.mentorBadgeText]}>
-                                {'🎯 Mentor Certifié'}
-                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <Ionicons name="shield-checkmark" size={12} color={Colors.primary} />
+                                <Text style={[styles.badgeText, styles.mentorBadgeText]}>{'Mentor Certifié'}</Text>
+                            </View>
                         </View>
                     </View>
 
@@ -140,19 +115,19 @@ export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScree
                 {/* Stats */}
                 <View style={styles.statsRow}>
                     <View style={styles.statCard}>
-                        <Text style={styles.statIcon}>{'🏆'}</Text>
+                        <Ionicons name="trophy" size={20} color={Colors.primary} style={{ marginBottom: Spacing.xs }} />
                         <Text style={styles.statValue}>
                             {mentor.ranking ? `#${mentor.ranking}` : '-'}
                         </Text>
                         <Text style={styles.statLabel}>{'Classement'}</Text>
                     </View>
                     <View style={[styles.statCard, styles.statCardCenter]}>
-                        <Text style={styles.statIcon}>{'🎾'}</Text>
+                        <MaterialCommunityIcons name="tennis" size={20} color={Colors.primary} style={{ marginBottom: Spacing.xs }} />
                         <Text style={styles.statValue}>{mentor.matchesPlayed || 0}</Text>
                         <Text style={styles.statLabel}>{'Matchs'}</Text>
                     </View>
                     <View style={styles.statCard}>
-                        <Text style={styles.statIcon}>{'🏅'}</Text>
+                        <Ionicons name="medal" size={20} color={Colors.primary} style={{ marginBottom: Spacing.xs }} />
                         <Text style={styles.statValue}>{mentor.matchesWon || 0}</Text>
                         <Text style={styles.statLabel}>{'Victoires'}</Text>
                     </View>
@@ -160,7 +135,10 @@ export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScree
 
                 {/* Padel Info */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{'🎾 Informations Padel'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
+                        <MaterialCommunityIcons name="tennis" size={18} color={Colors.textPrimary} />
+                        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{'Informations Padel'}</Text>
+                    </View>
                     <InfoRow label="Ligue" value={mentor.league?.toUpperCase() || '-'} />
                     <InfoRow label="Club" value={mentor.club || '-'} />
                     <InfoRow label="Position" value={playStyleLabel} isLast />
@@ -169,47 +147,49 @@ export default function MentorDetailScreen({ mentor, onBack }: MentorDetailScree
                 {/* About / Description */}
                 {mentor.mentorDescription ? (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>{'📝 À propos'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
+                            <Feather name="file-text" size={18} color={Colors.textPrimary} />
+                            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{'\u00c0 propos'}</Text>
+                        </View>
                         <Text style={styles.description}>{mentor.mentorDescription}</Text>
                     </View>
                 ) : null}
 
                 {/* Reviews placeholder */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{'⭐ Avis'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
+                        <Ionicons name="star" size={18} color={Colors.primary} />
+                        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{'Avis'}</Text>
+                    </View>
                     <View style={styles.comingSoon}>
                         <Text style={styles.comingSoonText}>{'Les avis seront disponibles prochainement'}</Text>
                     </View>
                 </View>
 
                 {/* CTA */}
-
-                <TouchableOpacity
-                    style={[styles.ctaButton, { opacity: paymentLoading ? 0.6 : 1 }]}
-                    activeOpacity={0.8}
-                    disabled={paymentLoading}
-                    onPress={handleReservation}
-                >
-                    <Text style={styles.ctaText}>
-                        {paymentLoading ? '⏳ Chargement…' : '📅 Réserver une session'}
-                    </Text>
-                    <Text style={styles.ctaSubtext}>{'Paiement sécurisé via Stripe'}</Text>
-                </TouchableOpacity>
+                {isSelf ? (
+                    <View style={[styles.ctaButton, { backgroundColor: Colors.backgroundSecondary, borderWidth: 1, borderColor: Colors.border }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <Ionicons name="person" size={18} color={Colors.textSecondary} />
+                            <Text style={[styles.ctaText, { color: Colors.textSecondary }]}>{'C\'est votre profil'}</Text>
+                        </View>
+                    </View>
+                ) : (
+                    <TouchableOpacity
+                        style={styles.ctaButton}
+                        activeOpacity={0.8}
+                        onPress={onBooking}
+                    >
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <Ionicons name="calendar" size={18} color={Colors.background} />
+                            <Text style={styles.ctaText}>{'Réserver une session'}</Text>
+                        </View>
+                        <Text style={styles.ctaSubtext}>{`${mentor.mentorPrice || 0}€ · Paiement sécurisé`}</Text>
+                    </TouchableOpacity>
+                )}
 
                 <View style={{ height: Spacing.xxl }} />
             </ScrollView>
-
-            {/* Web-only Stripe payment modal */}
-            <PaymentModal
-                visible={showPaymentModal}
-                clientSecret={clientSecret}
-                onSuccess={() => {
-                    setShowPaymentModal(false);
-                    Alert.alert('Succès', 'Votre paiement est confirmé !');
-                    console.log('Booking confirmed!');
-                }}
-                onCancel={() => setShowPaymentModal(false)}
-            />
         </View>
     );
 }
@@ -268,11 +248,6 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.backgroundSecondary,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    backArrow: {
-        color: Colors.textPrimary,
-        fontSize: FontSizes.xl,
-        fontWeight: '600',
     },
     headerTitle: {
         color: Colors.textPrimary,
@@ -418,10 +393,6 @@ const styles = StyleSheet.create({
     statCardCenter: {
         borderColor: Colors.primary,
         backgroundColor: '#EAB30810',
-    },
-    statIcon: {
-        fontSize: 20,
-        marginBottom: Spacing.xs,
     },
     statValue: {
         color: Colors.textPrimary,

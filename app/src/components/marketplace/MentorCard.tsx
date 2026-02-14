@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 import { UserProfile } from '../../types';
 import { getInitials } from '../../utils/formatters';
@@ -26,7 +27,10 @@ export default function MentorCard({ mentor, onPress }: MentorCardProps) {
             {/* Top Rated Badge */}
             {isTopRated && (
                 <View style={styles.topBadge}>
-                    <Text style={styles.topBadgeText}>{'⭐ Top'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Ionicons name="star" size={12} color={Colors.primary} />
+                        <Text style={styles.topBadgeText}>{'Top'}</Text>
+                    </View>
                 </View>
             )}
 
@@ -50,22 +54,34 @@ export default function MentorCard({ mentor, onPress }: MentorCardProps) {
 
                     <View style={styles.metaRow}>
                         {mentor.nationality ? (
-                            <Text style={styles.metaText}>{'🌍 '}{mentor.nationality}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <Ionicons name="globe-outline" size={12} color={Colors.textSecondary} />
+                                <Text style={styles.metaText}>{mentor.nationality}</Text>
+                            </View>
                         ) : null}
                         {mentor.league ? (
-                            <Text style={styles.metaText}>{'📍 '}{mentor.league.toUpperCase()}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <Ionicons name="location-outline" size={12} color={Colors.textSecondary} />
+                                <Text style={styles.metaText}>{mentor.league.toUpperCase()}</Text>
+                            </View>
                         ) : null}
                     </View>
 
                     <View style={styles.metaRow}>
                         {mentor.ranking ? (
                             <View style={styles.chip}>
-                                <Text style={styles.chipText}>{'🏆 #'}{mentor.ranking}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <Ionicons name="trophy" size={12} color={Colors.primary} />
+                                    <Text style={styles.chipText}>{'#'}{mentor.ranking}</Text>
+                                </View>
                             </View>
                         ) : null}
                         {playStyleLabel ? (
                             <View style={styles.chip}>
-                                <Text style={styles.chipText}>{'🎾 '}{playStyleLabel}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <MaterialCommunityIcons name="tennis" size={12} color={Colors.primary} />
+                                    <Text style={styles.chipText}>{playStyleLabel}</Text>
+                                </View>
                             </View>
                         ) : null}
                     </View>
