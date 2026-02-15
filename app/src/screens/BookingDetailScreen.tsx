@@ -4,7 +4,7 @@
  * Accessible by tapping a booking card from either BookingsListScreen
  * or MentorBookingsScreen.
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -18,13 +18,19 @@ import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { Booking, BookingStatus } from '../types';
 import { formatDate, formatTime, formatPrice } from '../utils/formatters';
 import { cancelBooking, acceptBooking, rejectBooking, completeBooking } from '../services/bookingService';
+import { getOrCreateConversation } from '../services/messagingService';
+import { createReview, getReviewForBooking } from '../services/reviewService';
+import { getUserProfile } from '../services/userService';
 import { auth } from '../config/firebase';
+import ReviewModal from '../components/booking/ReviewModal';
 
 interface BookingDetailScreenProps {
     booking: Booking;
     onBack: () => void;
     /** Called after any status change so the parent can refresh */
     onStatusChanged?: () => void;
+    /** Open chat for this booking */
+    onOpenChat?: (conversationId: string, otherUserName: string) => void;
 }
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string; bg: string; iconName: keyof typeof Ionicons.glyphMap }> = {
@@ -43,7 +49,7 @@ function canCancelWithRefund(bookingDate: Date): boolean {
     return diffHours >= 48;
 }
 
-export default function BookingDetailScreen({ booking, onBack, onStatusChanged }: BookingDetailScreenProps) {
+export default function BookingDetailScreen({ booking, onBack, onStatusChanged, onOpenChat }: BookingDetailScreenProps) {
     const date = new Date(booking.date);
     const cfg = STATUS_CONFIG[booking.status];
     const sessionLabel = booking.sessionType === 'tournament' ? 'Préparation Tournoi' : 'Sparring';
@@ -53,6 +59,61 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged }
 
     const canCancel = (booking.status === 'pending' || booking.status === 'confirmed');
     const refundEligible = canCancelWithRefund(date);
+
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
+    const [loadingChat, setLoadingChat] = useState(false);
+
+    // Check if user already reviewed this booking
+    useEffect(() => {
+        if (booking.status === 'completed' && userId) {
+            getReviewForBooking(booking.id, userId)
+                .then((review) => {
+                    if (review) setHasReviewed(true);
+                })
+                .catch(() => {});
+        }
+    }, [booking.id, booking.status, userId]);
+
+    // Determine the other party's name for review modal
+    const otherPartyName = isMentor
+        ? (booking.clientName || 'le joueur')
+        : (booking.mentorName || 'le mentor');
+
+    // Determine the reviewee ID
+    const revieweeId = isMentor ? booking.clientId : booking.mentorId;
+
+    const handleOpenChat = async () => {
+        if (loadingChat) return;
+        setLoadingChat(true);
+        try {
+            const conversation = await getOrCreateConversation(
+                booking.id,
+                [booking.clientId, booking.mentorId],
+            );
+            const otherName = isMentor
+                ? (booking.clientName || 'Joueur')
+                : (booking.mentorName || 'Mentor');
+            onOpenChat?.(conversation.id, otherName);
+        } catch (err) {
+            Alert.alert('Erreur', 'Impossible d\'ouvrir la conversation.');
+            console.error('[BookingDetail] Chat error:', err);
+        } finally {
+            setLoadingChat(false);
+        }
+    };
+
+    const handleReviewSubmit = async (rating: number, comment: string) => {
+        await createReview({
+            bookingId: booking.id,
+            revieweeId,
+            rating,
+            comment,
+        });
+        setHasReviewed(true);
+        setShowReviewModal(false);
+        Alert.alert('Merci !', 'Votre avis a été enregistré.');
+    };
 
     const handleCancel = () => {
         const message = refundEligible
@@ -244,6 +305,34 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged }
 
                 {/* Actions */}
                 <View style={styles.actionsSection}>
+                    {/* Chat — available for confirmed or completed bookings */}
+                    {(booking.status === 'confirmed' || booking.status === 'completed') && onOpenChat && (
+                        <TouchableOpacity style={styles.chatBtn} onPress={handleOpenChat} disabled={loadingChat}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Ionicons name="chatbubbles" size={18} color={Colors.background} />
+                                <Text style={styles.chatBtnText}>
+                                    {loadingChat ? 'Ouverture…' : 'Messagerie'}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* Review — available for completed bookings, if not already reviewed */}
+                    {booking.status === 'completed' && !hasReviewed && (
+                        <TouchableOpacity style={styles.reviewBtn} onPress={() => setShowReviewModal(true)}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Ionicons name="star" size={18} color={Colors.primary} />
+                                <Text style={styles.reviewBtnText}>{'Laisser un avis'}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+                    {booking.status === 'completed' && hasReviewed && (
+                        <View style={styles.reviewedBadge}>
+                            <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+                            <Text style={styles.reviewedBadgeText}>{'Avis envoyé'}</Text>
+                        </View>
+                    )}
+
                     {/* Mentor actions */}
                     {isMentor && booking.status === 'pending' && (
                         <View style={styles.mentorActions}>
@@ -271,6 +360,14 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged }
 
                 <View style={{ height: Spacing.xxl }} />
             </ScrollView>
+
+            {/* Review Modal */}
+            <ReviewModal
+                visible={showReviewModal}
+                mentorName={otherPartyName}
+                onSubmit={handleReviewSubmit}
+                onClose={() => setShowReviewModal(false)}
+            />
         </View>
     );
 }
@@ -451,4 +548,32 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     cancelBtnText: { color: Colors.error, fontSize: FontSizes.sm, fontWeight: '600' },
+    chatBtn: {
+        paddingVertical: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        backgroundColor: Colors.secondary,
+        alignItems: 'center',
+    },
+    chatBtnText: { color: Colors.background, fontSize: FontSizes.sm, fontWeight: '700' },
+    reviewBtn: {
+        paddingVertical: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        backgroundColor: '#EAB30815',
+        alignItems: 'center',
+    },
+    reviewBtnText: { color: Colors.primary, fontSize: FontSizes.sm, fontWeight: '700' },
+    reviewedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        backgroundColor: '#22C55E15',
+        borderWidth: 1,
+        borderColor: '#22C55E40',
+    },
+    reviewedBadgeText: { color: Colors.success, fontSize: FontSizes.sm, fontWeight: '600' },
 });

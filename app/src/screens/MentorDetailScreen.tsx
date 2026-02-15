@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
-import { UserProfile } from '../types';
-import { getInitials } from '../utils/formatters';
+import { UserProfile, Review } from '../types';
+import { getInitials, formatRelativeTime } from '../utils/formatters';
 import { auth } from '../config/firebase';
+import { getReviewsForUser } from '../services/reviewService';
+import { getUserProfile } from '../services/userService';
 
 interface MentorDetailScreenProps {
     mentor: UserProfile;
@@ -22,6 +24,39 @@ interface MentorDetailScreenProps {
 export default function MentorDetailScreen({ mentor, onBack, onBooking }: MentorDetailScreenProps) {
     const initials = getInitials(mentor.firstName || '?', mentor.lastName || '?');
     const isSelf = auth.currentUser?.uid === mentor.id;
+    const [reviews, setReviews] = useState<(Review & { reviewerName?: string })[]>([]);
+    const [loadingReviews, setLoadingReviews] = useState(true);
+
+    useEffect(() => {
+        loadReviews();
+    }, [mentor.id]);
+
+    const loadReviews = async () => {
+        try {
+            const data = await getReviewsForUser(mentor.id);
+            // Enrich with reviewer names
+            const enriched = await Promise.all(
+                data.slice(0, 10).map(async (review) => {
+                    try {
+                        const profile = await getUserProfile(review.reviewerId);
+                        return {
+                            ...review,
+                            reviewerName: profile
+                                ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+                                : 'Joueur',
+                        };
+                    } catch {
+                        return { ...review, reviewerName: 'Joueur' };
+                    }
+                }),
+            );
+            setReviews(enriched);
+        } catch (err) {
+            console.log('Error loading reviews:', err);
+        } finally {
+            setLoadingReviews(false);
+        }
+    };
 
     const playStyleLabel = mentor.playStyle === 'left' ? 'Gauche'
         : mentor.playStyle === 'right' ? 'Droite'
@@ -155,15 +190,46 @@ export default function MentorDetailScreen({ mentor, onBack, onBooking }: Mentor
                     </View>
                 ) : null}
 
-                {/* Reviews placeholder */}
+                {/* Reviews */}
                 <View style={styles.section}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
                         <Ionicons name="star" size={18} color={Colors.primary} />
-                        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{'Avis'}</Text>
+                        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                            {'Avis'} ({mentor.totalReviews || 0})
+                        </Text>
                     </View>
-                    <View style={styles.comingSoon}>
-                        <Text style={styles.comingSoonText}>{'Les avis seront disponibles prochainement'}</Text>
-                    </View>
+                    {loadingReviews ? (
+                        <View style={styles.comingSoon}>
+                            <Text style={styles.comingSoonText}>{'Chargement des avis…'}</Text>
+                        </View>
+                    ) : reviews.length === 0 ? (
+                        <View style={styles.comingSoon}>
+                            <Text style={styles.comingSoonText}>{'Aucun avis pour le moment'}</Text>
+                        </View>
+                    ) : (
+                        reviews.map((review, idx) => (
+                            <View
+                                key={review.id}
+                                style={[
+                                    reviewStyles.card,
+                                    idx < reviews.length - 1 && { marginBottom: Spacing.sm },
+                                ]}
+                            >
+                                <View style={reviewStyles.header}>
+                                    <Text style={reviewStyles.name}>{review.reviewerName || 'Joueur'}</Text>
+                                    <Text style={reviewStyles.date}>
+                                        {formatRelativeTime(new Date(review.createdAt))}
+                                    </Text>
+                                </View>
+                                <Text style={reviewStyles.stars}>
+                                    {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                                </Text>
+                                {review.comment ? (
+                                    <Text style={reviewStyles.comment}>{review.comment}</Text>
+                                ) : null}
+                            </View>
+                        ))
+                    )}
                 </View>
 
                 {/* CTA */}
@@ -454,5 +520,38 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.xs,
         marginTop: 2,
         opacity: 0.7,
+    },
+});
+
+const reviewStyles = StyleSheet.create({
+    card: {
+        backgroundColor: Colors.background,
+        borderRadius: BorderRadius.lg,
+        padding: Spacing.md,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    name: {
+        color: Colors.textPrimary,
+        fontSize: FontSizes.sm,
+        fontWeight: '600',
+    },
+    date: {
+        color: Colors.textSecondary,
+        fontSize: FontSizes.xs,
+    },
+    stars: {
+        color: Colors.primary,
+        fontSize: FontSizes.sm,
+        marginBottom: 4,
+    },
+    comment: {
+        color: Colors.textSecondary,
+        fontSize: FontSizes.sm,
+        lineHeight: 20,
     },
 });

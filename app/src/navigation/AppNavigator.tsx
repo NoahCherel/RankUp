@@ -16,6 +16,8 @@ import {
     BookingsListScreen,
     MentorBookingsScreen,
     BookingDetailScreen,
+    ConversationsListScreen,
+    ChatScreen,
 } from '../screens';
 import BottomTabBar, { TabName } from '../components/ui/BottomTabBar';
 import { Colors } from '../theme';
@@ -41,6 +43,8 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
     const [activeScreen, setActiveScreen] = useState<string>('home');
     const [selectedMentor, setSelectedMentor] = useState<UserProfile | null>(null);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+    const [selectedConversationName, setSelectedConversationName] = useState<string>('');
     const [userIsMentor, setUserIsMentor] = useState(false);
 
     // Check if current user is a mentor (to show the right bookings view)
@@ -64,6 +68,8 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
         setActiveScreen(tab);
         setSelectedMentor(null);
         setSelectedBooking(null);
+        setSelectedConversationId(null);
+        setSelectedConversationName('');
     };
 
     const handleMentorPress = (mentor: UserProfile) => {
@@ -74,6 +80,12 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
     const handleBookingPress = (booking: Booking) => {
         setSelectedBooking(booking);
         setActiveScreen('bookingDetail');
+    };
+
+    const handleConversationPress = (conversationId: string, otherUserName: string) => {
+        setSelectedConversationId(conversationId);
+        setSelectedConversationName(otherUserName);
+        setActiveScreen('chat');
     };
 
     const renderScreen = () => {
@@ -92,6 +104,10 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
                         onNavigateBookings={() => {
                             setActiveTab('bookings');
                             setActiveScreen('bookings');
+                        }}
+                        onNavigateMessages={() => {
+                            setActiveTab('messages');
+                            setActiveScreen('messages');
                         }}
                     />
                 );
@@ -160,6 +176,35 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
                         onStatusChanged={() => {
                             // Booking status changed — will reload on return to list
                         }}
+                        onOpenChat={(conversationId: string, otherUserName: string) => {
+                            setSelectedConversationId(conversationId);
+                            setSelectedConversationName(otherUserName);
+                            setActiveScreen('chat');
+                        }}
+                    />
+                );
+            case 'messages':
+                return (
+                    <ConversationsListScreen
+                        onConversationPress={handleConversationPress}
+                        onBack={() => {
+                            setActiveTab('home');
+                            setActiveScreen('home');
+                        }}
+                    />
+                );
+            case 'chat':
+                if (!selectedConversationId) return null;
+                return (
+                    <ChatScreen
+                        conversationId={selectedConversationId}
+                        otherUserName={selectedConversationName}
+                        onBack={() => {
+                            setSelectedConversationId(null);
+                            setSelectedConversationName('');
+                            setActiveScreen('messages');
+                            setActiveTab('messages');
+                        }}
                     />
                 );
             case 'profile':
@@ -187,8 +232,8 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
         }
     };
 
-    // Hide tab bar on sub-screens (mentorDetail, editProfile, booking, bookingDetail)
-    const showTabBar = ['home', 'marketplace', 'bookings', 'profile'].includes(activeScreen);
+    // Hide tab bar on sub-screens (mentorDetail, editProfile, booking, bookingDetail, chat)
+    const showTabBar = ['home', 'marketplace', 'messages', 'bookings', 'profile'].includes(activeScreen);
 
     return (
         <View style={{ flex: 1 }}>

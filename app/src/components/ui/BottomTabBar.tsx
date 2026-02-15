@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../theme';
 
-export type TabName = 'home' | 'marketplace' | 'bookings' | 'profile';
+export type TabName = 'home' | 'marketplace' | 'messages' | 'bookings' | 'profile';
 
 interface BottomTabBarProps {
     activeTab: TabName;
@@ -13,6 +13,7 @@ interface BottomTabBarProps {
 const tabs: { key: TabName; label: string; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'home', label: 'Accueil', icon: 'home-outline', iconActive: 'home' },
     { key: 'marketplace', label: 'Explorer', icon: 'search-outline', iconActive: 'search' },
+    { key: 'messages', label: 'Messages', icon: 'chatbubbles-outline', iconActive: 'chatbubbles' },
     { key: 'bookings', label: 'Sessions', icon: 'calendar-outline', iconActive: 'calendar' },
     { key: 'profile', label: 'Profil', icon: 'person-outline', iconActive: 'person' },
 ];
