@@ -25,6 +25,7 @@ import { auth } from '../config/firebase';
 import DateTimePicker from '../components/ui/DateTimePicker';
 import CourtSelector from '../components/booking/CourtSelector';
 import PaymentModal from '../components/payment/PaymentModal';
+import { useResponsive } from '../utils/responsive';
 
 interface BookingScreenProps {
     mentor: UserProfile;
@@ -43,6 +44,8 @@ export default function BookingScreen({ mentor, onBack, onBooked }: BookingScree
     // Web payment modal
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [clientSecret, setClientSecret] = useState('');
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     const price = mentor.mentorPrice || 0;
     const currentUserId = auth.currentUser?.uid;
@@ -88,7 +91,6 @@ export default function BookingScreen({ mentor, onBack, onBooked }: BookingScree
                 });
             }
         } catch (err) {
-            console.error('[BookingScreen] Payment error:', err);
             Alert.alert('Erreur', 'Impossible de traiter le paiement.');
         } finally {
             setSaving(false);
@@ -114,7 +116,6 @@ export default function BookingScreen({ mentor, onBack, onBooked }: BookingScree
             );
             onBooked();
         } catch (err) {
-            console.error('[BookingScreen] Booking creation error:', err);
             Alert.alert('Erreur', 'Le paiement a réussi mais la réservation a échoué. Contactez le support.');
         }
     };
@@ -125,7 +126,7 @@ export default function BookingScreen({ mentor, onBack, onBooked }: BookingScree
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

@@ -6,6 +6,8 @@ import {
     FlatList,
     RefreshControl,
     ActivityIndicator,
+    Platform,
+    useWindowDimensions,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { UserProfile } from '../types';
@@ -50,18 +52,13 @@ export default function MarketplaceScreen({ onMentorPress }: MarketplaceScreenPr
                 minRanking: filtersToUse.minRanking,
                 maxRanking: filtersToUse.maxRanking,
                 maxPrice: filtersToUse.maxPrice,
+                league: filtersToUse.league,
             }, 50);
 
-            // Client-side league filter
-            let result = data;
-            if (filtersToUse.league) {
-                result = data.filter((m) => m.league === filtersToUse.league);
-            }
-
-            setMentors(result);
-            setFilteredMentors(result);
-        } catch (err) {
-            console.error('[Marketplace] Error loading mentors:', err);
+            setMentors(data);
+            setFilteredMentors(data);
+        } catch {
+            // Silently handle - empty state will show
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -86,8 +83,15 @@ export default function MarketplaceScreen({ onMentorPress }: MarketplaceScreenPr
     };
 
     const renderMentor = ({ item }: { item: UserProfile }) => (
-        <MentorCard mentor={item} onPress={() => onMentorPress(item)} />
+        <View style={isWide ? webStyles.cardWrapper : undefined}>
+            <MentorCard mentor={item} onPress={() => onMentorPress(item)} />
+        </View>
     );
+
+    const { width } = useWindowDimensions();
+    const isWeb = Platform.OS === 'web';
+    const isWide = width > 768;
+    const numColumns = isWide ? 2 : 1;
 
     const renderEmpty = () => {
         if (loading) return null;
@@ -106,7 +110,7 @@ export default function MarketplaceScreen({ onMentorPress }: MarketplaceScreenPr
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, isWeb && webStyles.header]}>
                 <View>
                     <Text style={styles.headerTitle}>{'Marketplace'}</Text>
                     <Text style={styles.headerSubtitle}>
@@ -118,7 +122,7 @@ export default function MarketplaceScreen({ onMentorPress }: MarketplaceScreenPr
             </View>
 
             {/* Search + Filters */}
-            <View style={styles.controlsContainer}>
+            <View style={[styles.controlsContainer, isWeb && webStyles.controls]}>
                 <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
                 <FilterBar
                     activeFilters={filters}
@@ -135,10 +139,13 @@ export default function MarketplaceScreen({ onMentorPress }: MarketplaceScreenPr
                 </View>
             ) : (
                 <FlatList
+                    key={`list-${numColumns}`}
                     data={filteredMentors}
                     renderItem={renderMentor}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.listContent}
+                    numColumns={numColumns}
+                    contentContainerStyle={[styles.listContent, isWeb && webStyles.listContent]}
+                    columnWrapperStyle={isWide ? webStyles.columnWrapper : undefined}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={renderEmpty}
                     refreshControl={
@@ -217,5 +224,24 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 22,
         paddingHorizontal: Spacing.xl,
+    },
+});
+
+// Web-specific responsive styles
+const webStyles = StyleSheet.create({
+    header: {
+        paddingTop: Spacing.lg,
+    },
+    controls: {
+        maxWidth: 900,
+    },
+    listContent: {
+        maxWidth: 900,
+    },
+    columnWrapper: {
+        gap: Spacing.md,
+    },
+    cardWrapper: {
+        flex: 1,
     },
 });

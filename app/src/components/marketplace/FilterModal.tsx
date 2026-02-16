@@ -15,11 +15,11 @@ import { ActiveFilters } from './FilterBar';
 
 const LEAGUES = [
     { label: 'Toutes', value: '' },
-    { label: 'Île-de-France', value: 'idf' },
+    { label: 'Île-de-France', value: 'ile-de-france' },
     { label: 'PACA', value: 'paca' },
     { label: 'Occitanie', value: 'occitanie' },
     { label: 'Nouvelle-Aquitaine', value: 'nouvelle-aquitaine' },
-    { label: 'Auvergne-Rhône-Alpes', value: 'aura' },
+    { label: 'Auvergne-Rhône-Alpes', value: 'auvergne-rhone-alpes' },
     { label: 'Bretagne', value: 'bretagne' },
     { label: 'Grand Est', value: 'grand-est' },
     { label: 'Hauts-de-France', value: 'hauts-de-france' },

@@ -67,23 +67,19 @@ export const createPaymentIntentOnBackend = async (
  */
 export const onboardMentor = async (): Promise<void> => {
     try {
-        console.log('[PaymentService] Creating Stripe Connected Account…');
         const createAccount = httpsCallable<unknown, CreateStripeAccountResponse>(
             functions,
             'createStripeConnectedAccount',
         );
         const accountResult = await createAccount();
         const accountId = accountResult.data.accountId;
-        console.log('[PaymentService] Account created:', accountId);
 
-        console.log('[PaymentService] Creating Account Link…');
         const createLink = httpsCallable<{ accountId: string }, CreateAccountLinkResponse>(
             functions,
             'createStripeAccountLink',
         );
         const linkResult = await createLink({ accountId });
         const onboardingUrl = linkResult.data.url;
-        console.log('[PaymentService] Opening onboarding URL:', onboardingUrl);
 
         if (Platform.OS === 'web') {
             // On web, window.open is more reliable than Linking
@@ -97,7 +93,6 @@ export const onboardMentor = async (): Promise<void> => {
             }
         }
     } catch (error: any) {
-        console.error('[PaymentService] Onboarding error:', error);
         Alert.alert('Erreur', 'Une erreur est survenue lors de la connexion avec Stripe.');
         throw error;
     }

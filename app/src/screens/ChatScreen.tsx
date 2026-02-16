@@ -21,6 +21,7 @@ import { Message } from '../types';
 import { onMessages, sendMessage, markMessagesAsRead } from '../services/messagingService';
 import { auth } from '../config/firebase';
 import { formatRelativeTime } from '../utils/formatters';
+import { useResponsive } from '../utils/responsive';
 
 interface ChatScreenProps {
     conversationId: string;
@@ -34,6 +35,8 @@ export default function ChatScreen({ conversationId, otherUserName, onBack }: Ch
     const [sending, setSending] = useState(false);
     const flatListRef = useRef<FlatList>(null);
     const userId = auth.currentUser?.uid;
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     useEffect(() => {
         const unsubscribe = onMessages(conversationId, (msgs) => {
@@ -64,7 +67,6 @@ export default function ChatScreen({ conversationId, otherUserName, onBack }: Ch
         try {
             await sendMessage(conversationId, text);
         } catch (err) {
-            console.error('[ChatScreen] Send error:', err);
             setInputText(text); // Restore text on error
         } finally {
             setSending(false);
@@ -95,7 +97,7 @@ export default function ChatScreen({ conversationId, otherUserName, onBack }: Ch
             keyboardVerticalOffset={0}
         >
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

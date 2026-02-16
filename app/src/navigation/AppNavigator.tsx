@@ -21,7 +21,7 @@ import {
 } from '../screens';
 import BottomTabBar, { TabName } from '../components/ui/BottomTabBar';
 import { Colors } from '../theme';
-import { ActivityIndicator, View, Text } from 'react-native';
+import { ActivityIndicator, View, Text, Platform } from 'react-native';
 import { UserProfile, Booking } from '../types';
 
 export type RootStackParamList = {
@@ -234,11 +234,20 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
 
     // Hide tab bar on sub-screens (mentorDetail, editProfile, booking, bookingDetail, chat)
     const showTabBar = ['home', 'marketplace', 'messages', 'bookings', 'profile'].includes(activeScreen);
+    const isWeb = Platform.OS === 'web';
 
     return (
-        <View style={{ flex: 1 }}>
-            {renderScreen()}
-            {showTabBar && (
+        <View style={{ flex: 1, flexDirection: isWeb ? 'row' : 'column' }}>
+            {/* Web: sidebar always visible on left */}
+            {isWeb && (
+                <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
+            )}
+            {/* Content area */}
+            <View style={{ flex: 1 }}>
+                {renderScreen()}
+            </View>
+            {/* Mobile: bottom tab bar */}
+            {!isWeb && showTabBar && (
                 <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
             )}
         </View>
@@ -253,13 +262,10 @@ export default function AppNavigator() {
 
     const checkOnboarding = useCallback(async (userId: string) => {
         try {
-            console.log('[Nav] Checking onboarding for:', userId);
             const completed = await hasCompletedOnboarding(userId);
-            console.log('[Nav] Onboarding completed:', completed);
             setNeedsOnboarding(!completed);
             setError(null);
         } catch (err) {
-            console.error('[Nav] Error checking onboarding:', err);
             setNeedsOnboarding(true);
             setError('Erreur de connexion Firestore');
         }
@@ -267,7 +273,6 @@ export default function AppNavigator() {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            console.log('[Nav] Auth state changed:', currentUser?.email);
             setUser(currentUser);
 
             if (currentUser) {
@@ -283,12 +288,10 @@ export default function AppNavigator() {
     }, [checkOnboarding]);
 
     const handleOnboardingComplete = () => {
-        console.log('[Nav] Onboarding complete');
         setNeedsOnboarding(false);
     };
 
     const handleNeedOnboarding = () => {
-        console.log('[Nav] Profile not found, redirecting to onboarding');
         setNeedsOnboarding(true);
     };
 

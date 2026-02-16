@@ -8,7 +8,6 @@ interface StripeContainerProps {
 
 export const StripeContainer: React.FC<StripeContainerProps> = ({ children }) => {
     if (!STRIPE_PUBLISHABLE_KEY) {
-        console.warn('[StripeContainer] EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set.');
         return <>{children}</>;
     }
 

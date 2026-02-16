@@ -23,7 +23,6 @@ export const handlePayment = async (
 ): Promise<void> => {
     try {
         // 1 — Create PaymentIntent via Cloud Function (amount in cents)
-        console.log('[PaymentService] Creating PaymentIntent…');
         const { clientSecret } = await createPaymentIntentOnBackend(
             Math.round(amount * 100),
             'eur',
@@ -31,35 +30,29 @@ export const handlePayment = async (
         );
 
         // 2 — Initialise the PaymentSheet
-        console.log('[PaymentService] Initialising PaymentSheet…');
         const { error: initError } = await initPaymentSheet({
             merchantDisplayName: 'RankUp',
             paymentIntentClientSecret: clientSecret,
         });
 
         if (initError) {
-            console.error('[PaymentService] Init error:', initError);
             Alert.alert('Erreur', "Impossible d'initialiser le paiement.");
             return;
         }
 
         // 3 — Present the PaymentSheet
-        console.log('[PaymentService] Presenting PaymentSheet…');
         const { error: paymentError } = await presentPaymentSheet();
 
         if (paymentError) {
-            console.log('[PaymentService] Payment failed / cancelled:', paymentError);
             if (paymentError.code !== 'Canceled') {
                 Alert.alert('Paiement échoué', paymentError.message);
             }
             return;
         }
 
-        console.log('[PaymentService] Payment success!');
         Alert.alert('Succès', 'Votre paiement est confirmé !');
         onSuccess();
     } catch (error: any) {
-        console.error('[PaymentService] Payment error:', error);
         Alert.alert('Erreur', 'Une erreur est survenue lors du paiement.');
     }
 };

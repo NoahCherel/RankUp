@@ -1,78 +1,203 @@
-# RankUp - Application Mobile Padel
+# RankUp — Marketplace Padel Coaching
 
-## 📱 À propos
+> Application mobile & web de "Coaching-Action" dédiée au Padel.  
+> Mise en relation de joueurs amateurs avec des Mentors expérimentés.
 
-RankUp est une marketplace mobile (iOS/Android) de "Coaching-Action" dédiée au Padel. L'application met en relation des joueurs amateurs avec des joueurs expérimentés agissant comme "Mentors".
+---
 
-## 🚀 Démarrage rapide
+## Stack technique
+
+| Couche       | Technologie                                          |
+| ------------ | ---------------------------------------------------- |
+| Frontend     | React Native 0.81 · Expo SDK 54 · TypeScript         |
+| Backend      | Firebase (Auth, Firestore, Storage, Cloud Functions)  |
+| Paiement     | Stripe Connect Express (15 % commission plateforme)   |
+| Navigation   | React Navigation (NativeStack)                       |
+| Plateformes  | iOS · Android · Web (responsive 480 px centré)        |
+
+---
+
+## Architecture projet
+
+```
+RankUp/
+├── app/                          # Application Expo
+│   ├── App.tsx                   # Point d'entrée, AuthStateListener
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── booking/          # CourtSelector, ReviewModal
+│   │   │   ├── marketplace/      # MentorCard, FilterBar, FilterModal, SearchBar
+│   │   │   ├── payment/          # PaymentModal (.native / .web)
+│   │   │   ├── profile/          # AvatarPicker, MentorToggle, PadelSelectors, NationalitySelector
+│   │   │   └── ui/               # Button, TextInput, BottomTabBar, WebLayout, LoadingSpinner, DateTimePicker
+│   │   ├── config/firebase.ts    # Initialisation Firebase
+│   │   ├── navigation/           # AppNavigator (Auth → Onboarding → Main)
+│   │   ├── screens/              # 14 écrans (Auth, Home, Marketplace, Booking, Chat, Profile…)
+│   │   ├── services/             # userService, bookingService, messagingService, reviewService, paymentService
+│   │   ├── theme/                # Design tokens (couleurs, spacing, border radius)
+│   │   ├── types/                # TypeScript interfaces (UserProfile, Booking, Conversation, Review…)
+│   │   └── utils/                # validation.ts, formatters.ts, seedData.ts
+│   └── package.json
+├── functions/                    # Cloud Functions (europe-west1)
+│   └── src/index.ts              # createStripeConnectedAccount, createPaymentIntent, onBooking triggers
+├── firestore.rules               # Règles de sécurité Firestore
+├── storage.rules                 # Règles de sécurité Storage
+├── firebase.json                 # Configuration Firebase
+└── Docs/                         # Documentation projet (specs, design, plan de dev)
+```
+
+---
+
+## Setup local
 
 ### Prérequis
 
-- Node.js 20+
-- npm ou yarn
-- Expo CLI (`npm install -g expo-cli`)
-- Un projet Firebase configuré
+- **Node.js** ≥ 20
+- **npm** ≥ 10
+- Projet Firebase créé (Blaze plan pour Cloud Functions)
+- Compte Stripe (clés test)
 
 ### Installation
 
 ```bash
-# Cloner le repository
-git clone https://github.com/your-repo/rankup.git
-cd rankup/app
+# 1. Cloner le repository
+git clone https://github.com/NoahCherel/RankUp.git
+cd RankUp/app
 
-# Installer les dépendances
+# 2. Installer les dépendances app
 npm install
 
-# Configurer l'environnement
-cp .env.example .env
-# Éditer .env avec vos clés Firebase
+# 3. Installer les dépendances Cloud Functions
+cd ../functions && npm install && cd ../app
+
+# 4. Lancer en mode web
+npx expo start --web
+
+# 5. Lancer sur mobile (scanner QR avec Expo Go)
+npx expo start
 ```
 
-### Lancement
+### Déployer les Cloud Functions
 
 ```bash
-# Mode développement (Web)
-npm start -- --web
-
-# Mode développement (iOS/Android)
-npm start
-
-# Puis scanner le QR code avec Expo Go
+cd functions
+npm run build
+firebase deploy --only functions
 ```
 
-## 🏗️ Architecture
+### Déployer les règles de sécurité
 
-```
-src/
-├── components/         # Composants réutilisables
-│   └── ui/            # Button, TextInput, LoadingSpinner
-├── config/            # Configuration (Firebase)
-├── navigation/        # React Navigation
-├── screens/           # Écrans de l'application
-├── theme/             # Design System (couleurs, spacing)
-├── types/             # TypeScript types
-└── utils/             # Utilitaires (validation, formatters)
+```bash
+firebase deploy --only firestore:rules
+firebase deploy --only storage
 ```
 
-## 🎨 Design System
+---
 
-- **Background**: `#0F172A` (Dark Slate)
-- **Primary**: `#EAB308` (Yellow - Couleur balle Padel)
-- **Secondary**: `#38BDF8` (Sky Blue - Profils vérifiés)
+## Variables d'environnement
 
-## 🔧 Technologies
+Créer `app/.env` avec :
 
-- **Frontend**: React Native + Expo
-- **Backend**: Firebase (Auth, Firestore, Storage)
-- **Paiement**: Stripe Connect
-- **Navigation**: React Navigation
+```env
+# Firebase
+FIREBASE_API_KEY=your-api-key
+FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=123456789
+FIREBASE_APP_ID=1:123456789:web:abcdef
 
-## 📋 User Stories (MVP)
+# Stripe
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
 
-- [x] US #1 - Infrastructure & Authentification
-- [x] US #2 - Profil Utilisateur Unifié
-- [x] US #3 - Marketplace & Filtres
-- [x] US #4 - Intégration Stripe
-- [ ] US #5 - Workflow Réservation
-- [ ] US #6 - Messagerie & Avis
-- [ ] US #7 - Finitions & Demo
+> **Note :** Les clés sont actuellement en dur dans `config/firebase.ts` pour le MVP.  
+> En production, migrer vers `expo-constants` + variables d'environnement.
+
+---
+
+## Structure Firestore
+
+| Collection                         | Description                                           |
+| ---------------------------------- | ----------------------------------------------------- |
+| `users/{userId}`                   | Profil unifié (joueur + mentor si `isMentor: true`)   |
+| `bookings/{bookingId}`             | Réservation (studentId, mentorId, date, status, prix) |
+| `conversations/{conversationId}`   | En-tête conversation (participants[], lastMessage)     |
+| `conversations/{id}/messages/{id}` | Messages individuels (senderId, text, createdAt)       |
+| `reviews/{reviewId}`               | Avis post-session (bookingId, rating 1-5, comment)     |
+
+---
+
+## Design System — "Night Padel Aesthetic"
+
+| Token          | Valeur      | Usage                        |
+| -------------- | ----------- | ---------------------------- |
+| `background`   | `#0F172A`   | Fond principal (Slate 900)   |
+| `surface`      | `#1E293B`   | Cartes, modales (Slate 800)  |
+| `primary`      | `#EAB308`   | Boutons, accents (Yellow)    |
+| `secondary`    | `#38BDF8`   | Badges vérifiés (Sky 400)    |
+| `text`         | `#F8FAFC`   | Texte principal (Slate 50)   |
+| `textSecondary`| `#94A3B8`   | Texte secondaire (Slate 400) |
+| `error`        | `#EF4444`   | Erreurs (Red 500)            |
+| `success`      | `#22C55E`   | Succès (Green 500)           |
+
+---
+
+## Tests
+
+```bash
+cd app
+npx jest --config jest.config.js
+```
+
+Les tests couvrent :
+
+- Validation (email, password, profil, formulaires)
+- Formatters (prix, dates, initiales, étoiles)
+- Logique métier filtres (ranking, prix, ligue)
+- Logique annulation booking (règle 48 h)
+- Commission Stripe (15 %)
+- Seed data (compteurs)
+
+---
+
+## Seed Data (démo)
+
+Le bouton **"Charger données démo"** sur le HomeScreen injecte dans Firestore :
+
+- 5 mentors avec profils complets
+- 3 utilisateurs
+- 6 réservations (pending / confirmed / completed)
+- 4 conversations avec messages réalistes
+- 8 avis
+
+---
+
+## User Stories — État final
+
+| US   | Titre                         | Statut | Notes                                        |
+| ---- | ----------------------------- | ------ | -------------------------------------------- |
+| US 1 | Infrastructure & Auth         | ✅     | Email/password complet · Social login stub   |
+| US 2 | Profil Utilisateur Unifié     | ✅     | Photo, nationalité, ligue, classement, switch mentor |
+| US 3 | Marketplace & Filtres         | ✅     | Recherche nom, filtres ranking/prix/ligue    |
+| US 4 | Intégration Stripe            | ✅     | Connect Express + PaymentIntent · Commission 15 % |
+| US 5 | Workflow Réservation          | ✅     | Création → confirmation/rejet → complétion   |
+| US 6 | Messagerie & Avis             | ✅     | Chat temps réel · Notation 1-5 étoiles       |
+| US 7 | Finitions & Demo              | ✅     | Tests, seed data, règles sécurité, README    |
+
+---
+
+## Limites connues (MVP)
+
+- **Push notifications** : FCM token non enregistré côté client (dead code)
+- **Stripe webhooks** : non implémentés (confirmation manuelle uniquement)
+- **Social login** (Google/Apple) : stubs présents, non connectés
+- **Refund Stripe** : non implémenté sur annulation
+- **Config Firebase** : clés en dur (acceptable pour MVP académique)
+
+---
+
+## Auteur
+
+**Noah Cherel** — Projet académique  
+Repository : [github.com/NoahCherel/RankUp](https://github.com/NoahCherel/RankUp)

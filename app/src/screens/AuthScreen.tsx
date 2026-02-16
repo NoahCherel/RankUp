@@ -15,6 +15,7 @@ import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Button, TextInput } from '../components';
 import { validateLoginForm, getFieldError } from '../utils/validation';
+import { useResponsive } from '../utils/responsive';
 
 type AuthMode = 'login' | 'signup';
 
@@ -25,6 +26,8 @@ export default function AuthScreen() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ field: string; message: string }[]>([]);
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     const handleAuth = async () => {
         // Validate form
@@ -96,7 +99,7 @@ export default function AuthScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
             <ScrollView
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={[styles.scrollContent, isWeb && { maxWidth: 480, width: '100%' as any, alignSelf: 'center' as any }]}
                 keyboardShouldPersistTaps="handled"
             >
                 {/* Header */}

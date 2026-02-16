@@ -24,6 +24,7 @@ import {
     completeBooking,
 } from '../services/bookingService';
 import { formatDate, formatTime } from '../utils/formatters';
+import { useResponsive } from '../utils/responsive';
 
 interface MentorBookingsScreenProps {
     onBack: () => void;
@@ -43,7 +44,7 @@ export default function MentorBookingsScreen({ onBack, onBookingPress }: MentorB
             const data = await getMentorBookings();
             setBookings(data);
         } catch (err) {
-            console.error('[MentorBookings] Error:', err);
+            // Error handled silently
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -129,6 +130,8 @@ export default function MentorBookingsScreen({ onBack, onBookingPress }: MentorB
         );
     };
 
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
+
     if (loading) {
         return <LoadingSpinner fullScreen message="Chargement des demandes…" />;
     }
@@ -136,7 +139,7 @@ export default function MentorBookingsScreen({ onBack, onBookingPress }: MentorB
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>
