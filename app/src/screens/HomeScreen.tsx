@@ -18,9 +18,10 @@ interface HomeScreenProps {
     onNavigateProfile?: () => void;
     onNavigateMarketplace?: () => void;
     onNavigateBookings?: () => void;
+    onNavigateMessages?: () => void;
 }
 
-export default function HomeScreen({ onNavigateProfile, onNavigateMarketplace, onNavigateBookings }: HomeScreenProps) {
+export default function HomeScreen({ onNavigateProfile, onNavigateMarketplace, onNavigateBookings, onNavigateMessages }: HomeScreenProps) {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [greeting, setGreeting] = useState('');
 
@@ -130,12 +131,12 @@ export default function HomeScreen({ onNavigateProfile, onNavigateMarketplace, o
                     <Text style={styles.actionSubtitle}>{'Mes réservations'}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onNavigateMarketplace}>
+                <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onNavigateMessages}>
                     <View style={[styles.actionIconBg, { backgroundColor: '#EF444415' }]}>
-                        <MaterialCommunityIcons name="account-star" size={22} color={Colors.error} />
+                        <Ionicons name="chatbubbles" size={22} color={Colors.error} />
                     </View>
-                    <Text style={styles.actionTitle}>{'Mentors'}</Text>
-                    <Text style={styles.actionSubtitle}>{'Voir les mentors'}</Text>
+                    <Text style={styles.actionTitle}>{'Messages'}</Text>
+                    <Text style={styles.actionSubtitle}>{'Mes conversations'}</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>

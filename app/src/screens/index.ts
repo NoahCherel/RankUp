@@ -10,3 +10,5 @@ export { default as BookingScreen } from './BookingScreen';
 export { default as BookingsListScreen } from './BookingsListScreen';
 export { default as MentorBookingsScreen } from './MentorBookingsScreen';
 export { default as BookingDetailScreen } from './BookingDetailScreen';
+export { default as ConversationsListScreen } from './ConversationsListScreen';
+export { default as ChatScreen } from './ChatScreen';
