@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     TouchableOpacity,
+    Pressable,
     Text,
     StyleSheet,
     ActivityIndicator,
     ViewStyle,
     TextStyle,
+    Platform,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 
@@ -31,6 +33,7 @@ export default function Button({
     textStyle,
 }: ButtonProps) {
     const isDisabled = disabled || loading;
+    const [hovered, setHovered] = useState(false);
 
     const getBackgroundColor = () => {
         if (isDisabled) return Colors.border;
@@ -90,12 +93,58 @@ export default function Button({
         }
     };
 
+    const bgColor = getBackgroundColor();
+
+    // Use Pressable on web for hover support
+    if (Platform.OS === 'web') {
+        return (
+            <Pressable
+                style={[
+                    styles.button,
+                    {
+                        backgroundColor: bgColor,
+                        paddingVertical: getPadding(),
+                        borderWidth: variant === 'outline' ? 1 : 0,
+                        borderColor: Colors.primary,
+                        opacity: hovered && !isDisabled ? 0.85 : 1,
+                        transform: hovered && !isDisabled ? [{ scale: 0.98 }] : [],
+                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                    } as any,
+                    style,
+                ]}
+                onPress={onPress}
+                disabled={isDisabled}
+                onHoverIn={() => setHovered(true)}
+                onHoverOut={() => setHovered(false)}
+                accessibilityRole="button"
+                accessibilityLabel={title}
+            >
+                {loading ? (
+                    <ActivityIndicator color={getTextColor()} size="small" />
+                ) : (
+                    <Text
+                        style={[
+                            styles.text,
+                            {
+                                color: getTextColor(),
+                                fontSize: getFontSize(),
+                            },
+                            textStyle,
+                        ]}
+                    >
+                        {title}
+                    </Text>
+                )}
+            </Pressable>
+        );
+    }
+
     return (
         <TouchableOpacity
             style={[
                 styles.button,
                 {
-                    backgroundColor: getBackgroundColor(),
+                    backgroundColor: bgColor,
                     paddingVertical: getPadding(),
                     borderWidth: variant === 'outline' ? 1 : 0,
                     borderColor: Colors.primary,

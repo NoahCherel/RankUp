@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, Image, Platform } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../theme';
 import { UserProfile } from '../../types';
@@ -13,17 +13,14 @@ interface MentorCardProps {
 export default function MentorCard({ mentor, onPress }: MentorCardProps) {
     const initials = getInitials(mentor.firstName || '?', mentor.lastName || '?');
     const isTopRated = (mentor.averageRating || 0) >= 4.5;
+    const [hovered, setHovered] = useState(false);
 
     const playStyleLabel = mentor.playStyle === 'left' ? 'Gauche'
         : mentor.playStyle === 'right' ? 'Droite'
             : mentor.playStyle === 'both' ? 'Les deux' : '';
 
-    return (
-        <TouchableOpacity
-            style={[styles.card, isTopRated && styles.cardTopRated]}
-            onPress={onPress}
-            activeOpacity={0.85}
-        >
+    const cardContent = (
+        <>
             {/* Top Rated Badge */}
             {isTopRated && (
                 <View style={styles.topBadge}>
@@ -105,6 +102,36 @@ export default function MentorCard({ mentor, onPress }: MentorCardProps) {
                     <Text style={styles.priceLabel}>{'/ session'}</Text>
                 </View>
             </View>
+        </>
+    );
+
+    // Use Pressable on web for hover effects
+    if (Platform.OS === 'web') {
+        return (
+            <Pressable
+                style={[
+                    styles.card,
+                    isTopRated && styles.cardTopRated,
+                    hovered && styles.cardHovered,
+                    { cursor: 'pointer' } as any,
+                ]}
+                onPress={onPress}
+                onHoverIn={() => setHovered(true)}
+                onHoverOut={() => setHovered(false)}
+                accessibilityRole="button"
+            >
+                {cardContent}
+            </Pressable>
+        );
+    }
+
+    return (
+        <TouchableOpacity
+            style={[styles.card, isTopRated && styles.cardTopRated]}
+            onPress={onPress}
+            activeOpacity={0.85}
+        >
+            {cardContent}
         </TouchableOpacity>
     );
 }
@@ -129,6 +156,10 @@ const styles = StyleSheet.create({
     cardTopRated: {
         borderColor: Colors.primary,
         backgroundColor: '#EAB30808',
+    },
+    cardHovered: {
+        borderColor: Colors.primary,
+        transform: [{ scale: 1.01 }],
     },
     topBadge: {
         position: 'absolute',

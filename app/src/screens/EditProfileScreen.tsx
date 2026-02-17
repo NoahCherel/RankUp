@@ -27,6 +27,7 @@ import {
 import { onboardMentor } from '../services/paymentService';
 import { auth } from '../config/firebase';
 import { UserProfile } from '../types';
+import { useResponsive } from '../utils/responsive';
 
 interface EditProfileScreenProps {
     onBack: () => void;
@@ -77,7 +78,6 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
                 setMentorDescription(profile.mentorDescription || '');
             }
         } catch (error) {
-            console.error('Load profile error:', error);
             Alert.alert('Erreur', 'Impossible de charger ton profil.');
         } finally {
             setLoading(false);
@@ -97,7 +97,6 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
                 try {
                     photoURL = await uploadProfilePhoto(userId, photoUri);
                 } catch (photoError) {
-                    console.warn('Photo upload failed (CORS on web?), saving profile without photo:', photoError);
                     // Keep original photo URL, don't block profile save
                 }
             }
@@ -127,12 +126,13 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
             Alert.alert('Profil mis à jour', 'Tes modifications ont été enregistrées.');
             onBack();
         } catch (error) {
-            console.error('Save profile error:', error);
             Alert.alert('Erreur', 'Impossible de sauvegarder ton profil.');
         } finally {
             setSaving(false);
         }
     };
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     if (loading) {
         return <LoadingSpinner fullScreen message="Chargement du profil..." />;
@@ -144,7 +144,7 @@ export default function EditProfileScreen({ onBack }: EditProfileScreenProps) {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

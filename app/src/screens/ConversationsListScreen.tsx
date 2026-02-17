@@ -22,6 +22,7 @@ import { getUserProfile } from '../services/userService';
 import { getBooking } from '../services/bookingService';
 import { auth } from '../config/firebase';
 import { formatRelativeTime, truncateText } from '../utils/formatters';
+import { useResponsive } from '../utils/responsive';
 
 interface ConversationsListScreenProps {
     onConversationPress: (conversationId: string, otherUserName: string) => void;
@@ -91,11 +92,13 @@ export default function ConversationsListScreen({
             const enriched = await enrichConversations(convs);
             setConversations(enriched);
         } catch (err) {
-            console.error('[ConversationsList] Error:', err);
+            // Error handled silently
         } finally {
             setRefreshing(false);
         }
     };
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     if (loading) {
         return <LoadingSpinner fullScreen message="Chargement des conversations…" />;
@@ -104,7 +107,7 @@ export default function ConversationsListScreen({
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

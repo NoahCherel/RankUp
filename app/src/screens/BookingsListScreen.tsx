@@ -20,6 +20,7 @@ import { LoadingSpinner } from '../components';
 import { Booking, BookingStatus } from '../types';
 import { getMyBookings, cancelBooking } from '../services/bookingService';
 import { formatDate, formatTime } from '../utils/formatters';
+import { useResponsive } from '../utils/responsive';
 
 interface BookingsListScreenProps {
     onBack: () => void;
@@ -39,7 +40,7 @@ export default function BookingsListScreen({ onBack, onBookingPress }: BookingsL
             const data = await getMyBookings();
             setBookings(data);
         } catch (err) {
-            console.error('[BookingsList] Error:', err);
+            // Error handled silently
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -63,6 +64,7 @@ export default function BookingsListScreen({ onBack, onBookingPress }: BookingsL
         (b) => ['completed', 'rejected', 'cancelled'].includes(b.status) || new Date(b.date) < now,
     );
     const displayedBookings = tab === 'upcoming' ? upcoming : past;
+    const { headerPaddingTop, contentStyle } = useResponsive();
 
     const handleCancel = (booking: Booking) => {
         Alert.alert(
@@ -93,7 +95,7 @@ export default function BookingsListScreen({ onBack, onBookingPress }: BookingsL
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

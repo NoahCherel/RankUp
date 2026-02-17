@@ -78,7 +78,6 @@ export const getOrCreateConversation = async (
     };
 
     await setDoc(convRef, convData);
-    console.log('[messagingService] Created conversation:', convRef.id);
 
     return toConversation(convRef.id, {
         ...convData,
@@ -175,8 +174,6 @@ export const sendMessage = async (
         lastMessage: content.trim().substring(0, 100),
         lastMessageAt: now,
     });
-
-    console.log('[messagingService] Sent message in conversation:', conversationId);
 
     return toMessage(msgRef.id, {
         ...msgData,

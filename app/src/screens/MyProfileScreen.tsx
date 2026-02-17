@@ -16,6 +16,7 @@ import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LoadingSpinner, Button } from '../components/ui';
 import { getInitials } from '../utils/formatters';
+import { useResponsive } from '../utils/responsive';
 
 interface MyProfileScreenProps {
     onEditProfile: () => void;
@@ -47,7 +48,7 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
             }
             setProfile(data);
         } catch (err) {
-            console.error('[Profile] Load error:', err);
+            // Error loading profile
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -58,7 +59,7 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
         try {
             await signOut(auth);
         } catch (err) {
-            console.error('Logout error:', err);
+            // Logout error handled silently
         }
     };
 
@@ -66,6 +67,8 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
         setRefreshing(true);
         loadProfile();
     };
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     if (loading) {
         return <LoadingSpinner fullScreen message="Chargement du profil..." />;
@@ -103,7 +106,7 @@ export default function MyProfileScreen({ onEditProfile, onBack, onProfileNotFou
     return (
         <View style={styles.container}>
             {/* Fixed Header with Back Arrow */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

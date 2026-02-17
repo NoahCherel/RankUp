@@ -75,7 +75,6 @@ export const createReview = async (input: CreateReviewInput): Promise<Review> =>
     };
 
     await setDoc(reviewRef, reviewData);
-    console.log('[reviewService] Created review:', reviewRef.id);
 
     // Update the reviewee's average rating and total reviews
     await updateUserRating(input.revieweeId);
@@ -152,6 +151,4 @@ const updateUserRating = async (userId: string): Promise<void> => {
         averageRating,
         totalReviews: reviews.length,
     });
-
-    console.log(`[reviewService] Updated user ${userId}: avg=${averageRating}, total=${reviews.length}`);
 };

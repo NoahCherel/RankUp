@@ -34,7 +34,6 @@ export const createUserProfile = async (
     profileData: Partial<UserProfile>
 ): Promise<void> => {
     try {
-        console.log('[userService] Creating profile for:', userId);
         const userRef = doc(db, USERS_COLLECTION, userId);
         const now = Timestamp.now();
 
@@ -59,12 +58,8 @@ export const createUserProfile = async (
             updatedAt: now,
         });
 
-        console.log('[userService] Data to save:', JSON.stringify(dataToSave, null, 2));
-
         await setDoc(userRef, dataToSave, { merge: true });
-        console.log('[userService] Profile created successfully');
     } catch (error) {
-        console.error('[userService] Error creating profile:', error);
         throw error;
     }
 };
@@ -72,15 +67,11 @@ export const createUserProfile = async (
 // Get user profile by ID
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-        console.log('[userService] Getting profile for:', userId);
         const userRef = doc(db, USERS_COLLECTION, userId);
         const userSnap = await getDoc(userRef);
 
-        console.log('[userService] Document exists:', userSnap.exists());
-
         if (userSnap.exists()) {
             const data = userSnap.data();
-            console.log('[userService] Raw data:', JSON.stringify(data, null, 2));
             return {
                 ...data,
                 id: userSnap.id,
@@ -89,10 +80,8 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
             } as UserProfile;
         }
 
-        console.log('[userService] No profile found');
         return null;
     } catch (error) {
-        console.error('[userService] Error getting profile:', error);
         throw error;
     }
 };
@@ -103,16 +92,13 @@ export const updateUserProfile = async (
     updates: Partial<UserProfile>
 ): Promise<void> => {
     try {
-        console.log('[userService] Updating profile for:', userId);
         const userRef = doc(db, USERS_COLLECTION, userId);
         const cleanUpdates = removeUndefined(updates);
         await updateDoc(userRef, {
             ...cleanUpdates,
             updatedAt: Timestamp.now(),
         });
-        console.log('[userService] Profile updated successfully');
     } catch (error) {
-        console.error('[userService] Error updating profile:', error);
         throw error;
     }
 };
@@ -120,13 +106,10 @@ export const updateUserProfile = async (
 // Check if user has completed onboarding
 export const hasCompletedOnboarding = async (userId: string): Promise<boolean> => {
     try {
-        console.log('[userService] Checking onboarding for:', userId);
         const profile = await getUserProfile(userId);
         const completed = !!(profile?.firstName && profile?.lastName);
-        console.log('[userService] Onboarding completed:', completed);
         return completed;
     } catch (error) {
-        console.error('[userService] Error checking onboarding:', error);
         // If we can't check, assume not completed
         return false;
     }
@@ -138,14 +121,11 @@ export const uploadProfilePhoto = async (
     photoUri: string
 ): Promise<string> => {
     try {
-        console.log('[userService] Uploading photo for:', userId);
-
         let blob;
         try {
             const response = await fetch(photoUri);
             blob = await response.blob();
         } catch (fetchError) {
-            console.error('[userService] Error fetching blob:', fetchError);
             throw new Error('Failed to process image file');
         }
 
@@ -163,17 +143,12 @@ export const uploadProfilePhoto = async (
         }
 
         const downloadURL = await getDownloadURL(photoRef);
-        console.log('[userService] Photo uploaded:', downloadURL);
 
         // Update user profile with new photo URL
         await updateUserProfile(userId, { photoURL: downloadURL });
 
         return downloadURL;
     } catch (error) {
-        console.error('[userService] Error uploading photo:', error);
-        // Don't block the whole proccess if upload fails, just return empty string or rethrow if critical
-        // For onboarding user experience, we might want to log it and continue without photo?
-        // But for now let's rethrow to show alert
         throw error;
     }
 };
@@ -183,7 +158,7 @@ export const getMentors = async (
     filters?: {
         minRanking?: number;
         maxRanking?: number;
-        city?: string;
+        league?: string;
         maxPrice?: number;
     },
     limitCount: number = 20
@@ -209,13 +184,16 @@ export const getMentors = async (
 
         // Apply client-side filters if needed
         if (filters) {
-            if (filters.minRanking && profile.ranking && profile.ranking > filters.minRanking) {
+            if (filters.minRanking && profile.ranking && profile.ranking < filters.minRanking) {
                 return;
             }
-            if (filters.maxRanking && profile.ranking && profile.ranking < filters.maxRanking) {
+            if (filters.maxRanking && profile.ranking && profile.ranking > filters.maxRanking) {
                 return;
             }
             if (filters.maxPrice && profile.mentorPrice && profile.mentorPrice > filters.maxPrice) {
+                return;
+            }
+            if (filters.league && profile.league !== filters.league) {
                 return;
             }
         }

@@ -83,7 +83,6 @@ export const createBooking = async (input: CreateBookingInput): Promise<Booking>
     }
 
     await setDoc(bookingRef, bookingData);
-    console.log('[bookingService] Created booking:', bookingRef.id);
 
     return toBooking(bookingRef.id, {
         ...bookingData,
@@ -177,7 +176,6 @@ export const updateBookingStatus = async (
         status,
         updatedAt: Timestamp.now(),
     });
-    console.log(`[bookingService] Booking ${bookingId} → ${status}`);
 };
 
 /**

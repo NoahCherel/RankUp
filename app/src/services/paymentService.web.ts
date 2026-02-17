@@ -27,7 +27,6 @@ export const handlePayment = async (
     _onSuccess: () => void,
 ): Promise<string | undefined> => {
     try {
-        console.log('[PaymentService:web] Creating PaymentIntent…');
         const { clientSecret } = await createPaymentIntentOnBackend(
             Math.round(amount * 100),
             'eur',
@@ -35,7 +34,6 @@ export const handlePayment = async (
         );
         return clientSecret;
     } catch (error: any) {
-        console.error('[PaymentService:web] Error:', error);
         Alert.alert('Erreur', 'Une erreur est survenue lors du paiement.');
         return undefined;
     }

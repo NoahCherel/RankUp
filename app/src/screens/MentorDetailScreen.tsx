@@ -14,6 +14,7 @@ import { getInitials, formatRelativeTime } from '../utils/formatters';
 import { auth } from '../config/firebase';
 import { getReviewsForUser } from '../services/reviewService';
 import { getUserProfile } from '../services/userService';
+import { useResponsive } from '../utils/responsive';
 
 interface MentorDetailScreenProps {
     mentor: UserProfile;
@@ -26,6 +27,8 @@ export default function MentorDetailScreen({ mentor, onBack, onBooking }: Mentor
     const isSelf = auth.currentUser?.uid === mentor.id;
     const [reviews, setReviews] = useState<(Review & { reviewerName?: string })[]>([]);
     const [loadingReviews, setLoadingReviews] = useState(true);
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     useEffect(() => {
         loadReviews();
@@ -52,7 +55,7 @@ export default function MentorDetailScreen({ mentor, onBack, onBooking }: Mentor
             );
             setReviews(enriched);
         } catch (err) {
-            console.log('Error loading reviews:', err);
+            // Reviews loading error handled silently
         } finally {
             setLoadingReviews(false);
         }
@@ -72,7 +75,7 @@ export default function MentorDetailScreen({ mentor, onBack, onBooking }: Mentor
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

@@ -23,6 +23,7 @@ import { createReview, getReviewForBooking } from '../services/reviewService';
 import { getUserProfile } from '../services/userService';
 import { auth } from '../config/firebase';
 import ReviewModal from '../components/booking/ReviewModal';
+import { useResponsive } from '../utils/responsive';
 
 interface BookingDetailScreenProps {
     booking: Booking;
@@ -64,6 +65,8 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged, 
     const [hasReviewed, setHasReviewed] = useState(false);
     const [loadingChat, setLoadingChat] = useState(false);
 
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
+
     // Check if user already reviewed this booking
     useEffect(() => {
         if (booking.status === 'completed' && userId) {
@@ -97,7 +100,6 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged, 
             onOpenChat?.(conversation.id, otherName);
         } catch (err) {
             Alert.alert('Erreur', 'Impossible d\'ouvrir la conversation.');
-            console.error('[BookingDetail] Chat error:', err);
         } finally {
             setLoadingChat(false);
         }
@@ -216,7 +218,7 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged, 
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>

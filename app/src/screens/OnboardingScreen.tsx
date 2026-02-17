@@ -19,6 +19,7 @@ import {
 import { createUserProfile, uploadProfilePhoto } from '../services/userService';
 import { auth } from '../config/firebase';
 import { isValidName, isValidAge } from '../utils/validation';
+import { useResponsive } from '../utils/responsive';
 
 interface OnboardingScreenProps {
     onComplete: () => void;
@@ -45,6 +46,8 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
     // Errors
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const { headerPaddingTop, contentStyle, isWeb, isWide } = useResponsive();
 
     const validateStep1 = (): boolean => {
         const newErrors: Record<string, string> = {};
@@ -119,7 +122,6 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
             onComplete();
         } catch (error) {
-            console.error('Onboarding error:', error);
             Alert.alert('Erreur', 'Impossible de créer ton profil. Réessaie.');
         } finally {
             setLoading(false);
@@ -295,7 +297,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             <ScrollView
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[styles.content, { paddingTop: headerPaddingTop }, isWeb && { maxWidth: 600, width: '100%' as any, alignSelf: 'center' as any }]}
                 keyboardShouldPersistTaps="handled"
             >
                 {renderStepIndicator()}
