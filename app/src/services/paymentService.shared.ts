@@ -93,7 +93,8 @@ export const onboardMentor = async (): Promise<void> => {
             }
         }
     } catch (error: any) {
-        Alert.alert('Erreur', 'Une erreur est survenue lors de la connexion avec Stripe.');
+        const msg = error?.message || error?.code || 'Erreur inconnue';
+        Alert.alert('Erreur Stripe', `Impossible de configurer les virements.\n\n${msg}`);
         throw error;
     }
 };

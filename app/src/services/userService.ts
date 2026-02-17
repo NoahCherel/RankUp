@@ -129,7 +129,7 @@ export const uploadProfilePhoto = async (
             throw new Error('Failed to process image file');
         }
 
-        const photoRef = ref(storage, `profiles/${userId}/avatar.jpg`);
+        const photoRef = ref(storage, `profilePhotos/${userId}/avatar.jpg`);
 
         try {
             await uploadBytes(photoRef, blob);

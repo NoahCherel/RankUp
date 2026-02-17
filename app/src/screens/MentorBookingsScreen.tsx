@@ -10,7 +10,6 @@ import {
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    Alert,
     RefreshControl,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
@@ -25,6 +24,7 @@ import {
 } from '../services/bookingService';
 import { formatDate, formatTime } from '../utils/formatters';
 import { useResponsive } from '../utils/responsive';
+import { confirmAction, showAlert } from '../utils/confirm';
 
 interface MentorBookingsScreenProps {
     onBack: () => void;
@@ -65,68 +65,56 @@ export default function MentorBookingsScreen({ onBack, onBookingPress }: MentorB
     const displayed = tab === 'pending' ? pending : all;
 
     const handleAccept = (booking: Booking) => {
-        Alert.alert(
+        confirmAction(
             'Accepter la session ?',
             `Session avec ${booking.clientName || 'le joueur'} le ${formatDate(new Date(booking.date))}.`,
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Accepter',
-                    onPress: async () => {
-                        try {
-                            await acceptBooking(booking.id);
-                            loadBookings();
-                            Alert.alert('Session confirmée');
-                        } catch (err) {
-                            Alert.alert('Erreur', 'Impossible de confirmer.');
-                        }
-                    },
-                },
-            ],
+            'Accepter',
+            async () => {
+                try {
+                    await acceptBooking(booking.id);
+                    loadBookings();
+                    showAlert('Session confirmée');
+                } catch (err) {
+                    console.error('Accept booking error:', err);
+                    showAlert('Erreur', 'Impossible de confirmer.');
+                }
+            },
         );
     };
 
     const handleReject = (booking: Booking) => {
-        Alert.alert(
+        confirmAction(
             'Refuser la session ?',
             `Refuser la demande de ${booking.clientName || 'le joueur'} ?`,
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Refuser',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await rejectBooking(booking.id);
-                            loadBookings();
-                        } catch (err) {
-                            Alert.alert('Erreur', 'Impossible de refuser.');
-                        }
-                    },
-                },
-            ],
+            'Refuser',
+            async () => {
+                try {
+                    await rejectBooking(booking.id);
+                    loadBookings();
+                } catch (err) {
+                    console.error('Reject booking error:', err);
+                    showAlert('Erreur', 'Impossible de refuser.');
+                }
+            },
+            true,
         );
     };
 
     const handleComplete = (booking: Booking) => {
-        Alert.alert(
+        confirmAction(
             'Session terminée ?',
             'Confirmer que la session a bien eu lieu ?',
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Oui, terminée',
-                    onPress: async () => {
-                        try {
-                            await completeBooking(booking.id);
-                            loadBookings();
-                            Alert.alert('Session marquée comme terminée.');
-                        } catch (err) {
-                            Alert.alert('Erreur', 'Impossible de mettre à jour.');
-                        }
-                    },
-                },
-            ],
+            'Oui, terminée',
+            async () => {
+                try {
+                    await completeBooking(booking.id);
+                    loadBookings();
+                    showAlert('Session marquée comme terminée.');
+                } catch (err) {
+                    console.error('Complete booking error:', err);
+                    showAlert('Erreur', 'Impossible de mettre à jour.');
+                }
+            },
         );
     };
 

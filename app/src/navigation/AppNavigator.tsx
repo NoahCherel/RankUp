@@ -143,18 +143,6 @@ function MainStack({ onNeedOnboarding }: { onNeedOnboarding: () => void }) {
                     />
                 );
             case 'bookings':
-                // Show mentor-specific view if user is a mentor, else client view
-                if (userIsMentor) {
-                    return (
-                        <MentorBookingsScreen
-                            onBack={() => {
-                                setActiveTab('home');
-                                setActiveScreen('home');
-                            }}
-                            onBookingPress={handleBookingPress}
-                        />
-                    );
-                }
                 return (
                     <BookingsListScreen
                         onBack={() => {

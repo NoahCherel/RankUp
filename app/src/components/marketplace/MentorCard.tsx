@@ -57,9 +57,11 @@ export default function MentorCard({ mentor, onPress }: MentorCardProps) {
                             </View>
                         ) : null}
                         {mentor.league ? (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 }}>
                                 <Ionicons name="location-outline" size={12} color={Colors.textSecondary} />
-                                <Text style={styles.metaText}>{mentor.league.toUpperCase()}</Text>
+                                <Text style={styles.metaText} numberOfLines={1}>
+                                    {mentor.league.length > 12 ? mentor.league.substring(0, 12).toUpperCase() + '…' : mentor.league.toUpperCase()}
+                                </Text>
                             </View>
                         ) : null}
                     </View>
