@@ -270,6 +270,41 @@ export const onBookingStatusChanged = functions
     });
 
 // =========================================================================
+// REVIEW — Recalculate mentor rating on new review
+// =========================================================================
+
+export const onReviewCreated = functions
+    .region("europe-west1")
+    .firestore.document("reviews/{reviewId}")
+    .onCreate(async (snap) => {
+        const review = snap.data();
+        const revieweeId = review.revieweeId;
+        if (!revieweeId) return;
+
+        // Fetch all reviews for this reviewee
+        const reviewsSnap = await db.collection("reviews")
+            .where("revieweeId", "==", revieweeId)
+            .get();
+
+        if (reviewsSnap.empty) return;
+
+        let totalRating = 0;
+        reviewsSnap.docs.forEach((d) => {
+            totalRating += d.data().rating || 0;
+        });
+
+        const count = reviewsSnap.size;
+        const averageRating = Math.round((totalRating / count) * 10) / 10;
+
+        await db.collection("users").doc(revieweeId).update({
+            averageRating,
+            totalReviews: count,
+        });
+
+        console.log(`[onReviewCreated] Updated ${revieweeId}: avg=${averageRating}, total=${count}`);
+    });
+
+// =========================================================================
 // SEED DEMO DATA — Admin SDK (bypasses security rules)
 // =========================================================================
 
@@ -594,6 +629,8 @@ export const seedDemoData = functions
             { id: "review_3", bookingId: "booking_6", reviewerId: emmaUid, revieweeId: thomasUid, rating: 4, comment: "Patient et pédagogue. Parfait pour débuter." },
             { id: "review_4", bookingId: "booking_fake_1", reviewerId: julienUid, revieweeId: carlosUid, rating: 5, comment: "Carlos est exceptionnel. Niveau pro et très sympa." },
             { id: "review_5", bookingId: "booking_fake_2", reviewerId: julienUid, revieweeId: carlosUid, rating: 5, comment: "Session intense et enrichissante !" },
+            { id: "review_9", bookingId: "booking_fake_6", reviewerId: emmaUid, revieweeId: carlosUid, rating: 4, comment: "Super session, Carlos m'a aidée à améliorer ma volée de revers." },
+            { id: "review_10", bookingId: "booking_fake_7", reviewerId: thomasUid, revieweeId: carlosUid, rating: 5, comment: "Excellent pédagogue, on sent le niveau pro. Je recommande !" },
             { id: "review_6", bookingId: "booking_fake_3", reviewerId: emmaUid, revieweeId: sophieUid, rating: 5, comment: "Sophie adapte parfaitement ses cours au niveau." },
             { id: "review_7", bookingId: "booking_fake_4", reviewerId: julienUid, revieweeId: sophieUid, rating: 4, comment: "Bonne ambiance et bons conseils techniques." },
             { id: "review_8", bookingId: "booking_fake_5", reviewerId: currentUid, revieweeId: luciaUid, rating: 5, comment: "J'ai progressé de fou en une seule session." },

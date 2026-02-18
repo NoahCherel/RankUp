@@ -55,10 +55,14 @@ export const getOrCreateConversation = async (
     bookingId: string,
     participantIds: [string, string],
 ): Promise<Conversation> => {
-    // Check for existing conversation
+    const userId = auth.currentUser?.uid;
+    if (!userId) throw new Error('User not authenticated');
+
+    // Query must include array-contains for current user to satisfy Firestore rules
     const q = query(
         collection(db, CONVERSATIONS_COLLECTION),
         where('bookingId', '==', bookingId),
+        where('participants', 'array-contains', userId),
     );
     const snap = await getDocs(q);
 

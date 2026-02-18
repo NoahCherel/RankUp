@@ -76,8 +76,7 @@ export const createReview = async (input: CreateReviewInput): Promise<Review> =>
 
     await setDoc(reviewRef, reviewData);
 
-    // Update the reviewee's average rating and total reviews
-    await updateUserRating(input.revieweeId);
+    // Rating recalculation is handled server-side by the onReviewCreated Cloud Function
 
     return toReview(reviewRef.id, {
         ...reviewData,
