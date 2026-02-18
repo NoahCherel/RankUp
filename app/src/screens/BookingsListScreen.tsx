@@ -11,16 +11,16 @@ import {
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    Alert,
     RefreshControl,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { LoadingSpinner } from '../components';
 import { Booking, BookingStatus } from '../types';
-import { getMyBookings, cancelBooking } from '../services/bookingService';
+import { getMyBookings, getMentorBookings, cancelBooking } from '../services/bookingService';
 import { formatDate, formatTime } from '../utils/formatters';
 import { useResponsive } from '../utils/responsive';
+import { confirmAction, showAlert } from '../utils/confirm';
 
 interface BookingsListScreenProps {
     onBack: () => void;
@@ -37,8 +37,17 @@ export default function BookingsListScreen({ onBack, onBookingPress }: BookingsL
 
     const loadBookings = useCallback(async () => {
         try {
-            const data = await getMyBookings();
-            setBookings(data);
+            const clientData = await getMyBookings();
+            const mentorData = await getMentorBookings();
+            // Merge and deduplicate
+            const merged = [...clientData];
+            for (const mb of mentorData) {
+                if (!merged.some(b => b.id === mb.id)) {
+                    merged.push(mb);
+                }
+            }
+            merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setBookings(merged);
         } catch (err) {
             // Error handled silently
         } finally {
@@ -67,24 +76,20 @@ export default function BookingsListScreen({ onBack, onBookingPress }: BookingsL
     const { headerPaddingTop, contentStyle } = useResponsive();
 
     const handleCancel = (booking: Booking) => {
-        Alert.alert(
+        confirmAction(
             'Annuler la réservation ?',
             'Êtes-vous sûr de vouloir annuler cette session ?',
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Oui, annuler',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await cancelBooking(booking.id);
-                            loadBookings();
-                        } catch (err) {
-                            Alert.alert('Erreur', "Impossible d'annuler.");
-                        }
-                    },
-                },
-            ],
+            'Oui, annuler',
+            async () => {
+                try {
+                    await cancelBooking(booking.id);
+                    loadBookings();
+                } catch (err) {
+                    console.error('Cancel booking error:', err);
+                    showAlert('Erreur', "Impossible d'annuler.");
+                }
+            },
+            true,
         );
     };
 

@@ -160,26 +160,50 @@ export default function HomeScreen({ onNavigateProfile, onNavigateMarketplace, o
                     disabled={seeding}
                     onPress={async () => {
                         const summary = getSeedSummary();
-                        Alert.alert(
-                            'Seed données démo',
-                            `Cela va créer :\n• ${summary.mentors} mentors\n• ${summary.users} utilisateurs\n• ${summary.bookings} réservations\n• ${summary.conversations} conversations\n• ${summary.reviews} avis\n\nContinuer ?`,
-                            [
+                        const confirmMsg = `Cela va créer :\n• ${summary.mentors} mentors\n• ${summary.users} utilisateurs\n• ${summary.bookings} réservations\n• ${summary.conversations} conversations\n• ${summary.reviews} avis\n\nDes vrais comptes Firebase Auth seront créés.\nContinuer ?`;
+
+                        const doSeed = async () => {
+                            setSeeding(true);
+                            try {
+                                const result = await seedAll();
+                                setSeeding(false);
+                                if (result.success) {
+                                    const accountsList = result.demoAccounts?.join('\n• ') || '';
+                                    const successMsg = `Les données de démo sont prêtes !\n\nComptes démo créés :\n• ${accountsList}\n\nMot de passe : ${result.demoPassword}\n\nVous pouvez vous connecter avec ces comptes pour tester.`;
+                                    if (Platform.OS === 'web') {
+                                        window.alert('✅ ' + successMsg);
+                                    } else {
+                                        Alert.alert('✅ Succès', successMsg);
+                                    }
+                                } else {
+                                    const errMsg = result.error || 'Erreur inconnue';
+                                    if (Platform.OS === 'web') {
+                                        window.alert('❌ Erreur : ' + errMsg);
+                                    } else {
+                                        Alert.alert('❌ Erreur', errMsg);
+                                    }
+                                }
+                            } catch (err: any) {
+                                setSeeding(false);
+                                const errMsg = err.message || 'Erreur inconnue';
+                                if (Platform.OS === 'web') {
+                                    window.alert('❌ Erreur : ' + errMsg);
+                                } else {
+                                    Alert.alert('❌ Erreur', errMsg);
+                                }
+                            }
+                        };
+
+                        if (Platform.OS === 'web') {
+                            if (window.confirm(confirmMsg)) {
+                                await doSeed();
+                            }
+                        } else {
+                            Alert.alert('Seed données démo', confirmMsg, [
                                 { text: 'Annuler', style: 'cancel' },
-                                {
-                                    text: 'Seed',
-                                    onPress: async () => {
-                                        setSeeding(true);
-                                        const result = await seedAll();
-                                        setSeeding(false);
-                                        if (result.success) {
-                                            Alert.alert('✅ Succès', 'Les données de démo sont prêtes !');
-                                        } else {
-                                            Alert.alert('❌ Erreur', result.error || 'Erreur inconnue');
-                                        }
-                                    },
-                                },
-                            ],
-                        );
+                                { text: 'Seed', onPress: doSeed },
+                            ]);
+                        }
                     }}
                 >
                     <Ionicons name="cloud-upload" size={18} color={Colors.background} />

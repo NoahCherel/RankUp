@@ -11,7 +11,6 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    Alert,
 } from 'react-native';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../theme';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
@@ -24,6 +23,7 @@ import { getUserProfile } from '../services/userService';
 import { auth } from '../config/firebase';
 import ReviewModal from '../components/booking/ReviewModal';
 import { useResponsive } from '../utils/responsive';
+import { confirmAction, showAlert } from '../utils/confirm';
 
 interface BookingDetailScreenProps {
     booking: Booking;
@@ -99,7 +99,7 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged, 
                 : (booking.mentorName || 'Mentor');
             onOpenChat?.(conversation.id, otherName);
         } catch (err) {
-            Alert.alert('Erreur', 'Impossible d\'ouvrir la conversation.');
+            showAlert('Erreur', 'Impossible d\'ouvrir la conversation.');
         } finally {
             setLoadingChat(false);
         }
@@ -114,7 +114,7 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged, 
         });
         setHasReviewed(true);
         setShowReviewModal(false);
-        Alert.alert('Merci !', 'Votre avis a été enregistré.');
+        showAlert('Merci !', 'Votre avis a été enregistré.');
     };
 
     const handleCancel = () => {
@@ -122,96 +122,80 @@ export default function BookingDetailScreen({ booking, onBack, onStatusChanged, 
             ? 'Vous recevrez un remboursement complet.'
             : 'La session est dans moins de 48h, aucun remboursement ne sera effectué.';
 
-        Alert.alert(
+        confirmAction(
             'Annuler la réservation ?',
             message,
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Oui, annuler',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await cancelBooking(booking.id);
-                            Alert.alert('Réservation annulée');
-                            onStatusChanged?.();
-                            onBack();
-                        } catch {
-                            Alert.alert('Erreur', "Impossible d'annuler.");
-                        }
-                    },
-                },
-            ],
+            'Oui, annuler',
+            async () => {
+                try {
+                    await cancelBooking(booking.id);
+                    showAlert('Réservation annulée');
+                    onStatusChanged?.();
+                    onBack();
+                } catch (e) {
+                    console.error('Cancel booking error:', e);
+                    showAlert('Erreur', "Impossible d'annuler.");
+                }
+            },
+            true,
         );
     };
 
     const handleAccept = () => {
-        Alert.alert(
+        confirmAction(
             'Accepter la session ?',
             `Session avec ${booking.clientName || 'le joueur'} le ${formatDate(date)}.`,
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Accepter',
-                    onPress: async () => {
-                        try {
-                            await acceptBooking(booking.id);
-                            Alert.alert('Session confirmée');
-                            onStatusChanged?.();
-                            onBack();
-                        } catch {
-                            Alert.alert('Erreur', 'Impossible de confirmer.');
-                        }
-                    },
-                },
-            ],
+            'Accepter',
+            async () => {
+                try {
+                    await acceptBooking(booking.id);
+                    showAlert('Session confirmée');
+                    onStatusChanged?.();
+                    onBack();
+                } catch (e) {
+                    console.error('Accept booking error:', e);
+                    showAlert('Erreur', 'Impossible de confirmer.');
+                }
+            },
         );
     };
 
     const handleReject = () => {
-        Alert.alert(
+        confirmAction(
             'Refuser la session ?',
             `Refuser la demande de ${booking.clientName || 'le joueur'} ?`,
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Refuser',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await rejectBooking(booking.id);
-                            Alert.alert('Session refusée');
-                            onStatusChanged?.();
-                            onBack();
-                        } catch {
-                            Alert.alert('Erreur', 'Impossible de refuser.');
-                        }
-                    },
-                },
-            ],
+            'Refuser',
+            async () => {
+                try {
+                    await rejectBooking(booking.id);
+                    showAlert('Session refusée');
+                    onStatusChanged?.();
+                    onBack();
+                } catch (e) {
+                    console.error('Reject booking error:', e);
+                    showAlert('Erreur', 'Impossible de refuser.');
+                }
+            },
+            true,
         );
     };
 
     const handleComplete = () => {
-        Alert.alert(
+        confirmAction(
             'Session terminée ?',
             'Confirmer que la session a bien eu lieu ?',
-            [
-                { text: 'Non', style: 'cancel' },
-                {
-                    text: 'Oui, terminée',
-                    onPress: async () => {
-                        try {
-                            await completeBooking(booking.id);
-                            Alert.alert('Session terminée. Merci !');
-                            onStatusChanged?.();
-                            onBack();
-                        } catch {
-                            Alert.alert('Erreur');
-                        }
-                    },
-                },
-            ],
+            'Oui, terminée',
+            async () => {
+                try {
+                    await completeBooking(booking.id);
+                    showAlert('Session terminée. Merci !');
+                    onStatusChanged?.();
+                    onBack();
+                } catch (e) {
+                    console.error('Complete booking error:', e);
+                    showAlert('Erreur');
+                }
+            },
         );
     };
 
